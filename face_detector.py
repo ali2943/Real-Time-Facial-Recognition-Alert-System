@@ -30,29 +30,48 @@ class FaceDetector:
             - confidence: detection confidence
             - keypoints: facial landmarks
         """
-        # Convert BGR to RGB (MTCNN expects RGB)
-        rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-        
-        # Detect faces
-        detections = self.detector.detect_faces(rgb_frame)
-        
-        # Filter by confidence and size
-        valid_detections = []
-        for detection in detections:
-            confidence = detection['confidence']
-            box = detection['box']
+        try:
+            # Validate frame
+            if frame is None or frame.size == 0:
+                return []
             
-            # Check confidence threshold
-            if confidence < config.FACE_DETECTION_CONFIDENCE:
-                continue
+            # Convert BGR to RGB (MTCNN expects RGB)
+            rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
             
-            # Check minimum face size
-            if box[2] < config.MIN_FACE_SIZE or box[3] < config.MIN_FACE_SIZE:
-                continue
+            # Detect faces - wrapped in try-except to handle MTCNN ValueError
+            try:
+                detections = self.detector.detect_faces(rgb_frame)
+            except ValueError as e:
+                # MTCNN sometimes raises ValueError on empty output
+                # This is expected behavior, not an error
+                return []
             
-            valid_detections.append(detection)
+            # Handle None or empty detections
+            if detections is None:
+                return []
+            
+            # Filter by confidence and size
+            valid_detections = []
+            for detection in detections:
+                confidence = detection['confidence']
+                box = detection['box']
+                
+                # Check confidence threshold
+                if confidence < config.FACE_DETECTION_CONFIDENCE:
+                    continue
+                
+                # Check minimum face size
+                if box[2] < config.MIN_FACE_SIZE or box[3] < config.MIN_FACE_SIZE:
+                    continue
+                
+                valid_detections.append(detection)
+            
+            return valid_detections
         
-        return valid_detections
+        except Exception as e:
+            # Catch any other unexpected errors
+            print(f"[ERROR] Face detection failed: {e}")
+            return []
     
     def extract_face(self, frame, box, margin=20):
         """
