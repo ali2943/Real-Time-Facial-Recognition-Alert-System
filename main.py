@@ -120,7 +120,8 @@ class FacialRecognitionSystem:
                         if matched_name:
                             print(f"[DEBUG] Best match: {matched_name}, Distance: {distance:.4f}, Threshold: {config.RECOGNITION_THRESHOLD}")
                         else:
-                            print(f"[DEBUG] Best match: None, Distance: {distance if distance is not None else 'N/A'}, Threshold: {config.RECOGNITION_THRESHOLD}")
+                            dist_str = f"{distance:.4f}" if distance is not None else "N/A"
+                            print(f"[DEBUG] Best match: None, Distance: {dist_str}, Threshold: {config.RECOGNITION_THRESHOLD}")
                     
                     if matched_name:
                         # ACCESS GRANTED - Authorized user
@@ -141,7 +142,7 @@ class FacialRecognitionSystem:
                         break
                     else:
                         # ACCESS DENIED - Unauthorized user
-                        if distance and distance != float('inf'):
+                        if distance is not None and distance != float('inf'):
                             print(f"[FAILURE] Access Denied: Unknown Person (best distance: {distance:.4f})")
                         else:
                             print(f"[FAILURE] Access Denied: Unknown Person (no database entries)")
