@@ -247,7 +247,11 @@ class FaceRecognitionModel:
         -------------
         ```python
         recognizer = FaceRecognitionModel()
+        
+        # Load image (OpenCV imread returns BGR format)
         face_img = cv2.imread('face.jpg')
+        # get_embedding will automatically convert BGR to RGB
+        
         embedding = recognizer.get_embedding(face_img)
         print(embedding.shape)  # (128,)
         ```

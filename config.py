@@ -259,13 +259,39 @@ TEXTURE_ANALYSIS_THRESHOLD = 0.7  # Texture score threshold (0-1)
 # - 0.7: Balanced (recommended)
 # - 0.6: Strict, may reject some real faces in poor lighting
 
-# Recognition Improvements
+# --- Advanced Recognition Features ---
+# Enhanced matching strategies for better accuracy
+
 # NOTE: When USE_INSIGHTFACE is True, RECOGNITION_THRESHOLD should be lower (0.4-0.6 vs 0.8-1.2 for FaceNet)
 # The threshold is automatically adjusted when InsightFace is loaded
+
 USE_KNN_MATCHING = True  # Use k-nearest neighbors instead of single match
+# KNN compares against multiple enrollment samples and uses majority vote
+# More robust than single-sample matching
+
 KNN_K = 3  # Number of neighbors to consider
-ADAPTIVE_THRESHOLD_PER_USER = True  # Use personalized thresholds
-MIN_MATCH_CONFIDENCE = 0.75  # Minimum confidence for positive match
+# K=3 means compare to 3 closest embeddings and use majority vote
+# - K=1: Single match (baseline)
+# - K=3: Good balance (recommended)
+# - K=5+: Slower, marginal improvement
+
+ADAPTIVE_THRESHOLD_PER_USER = True  # Use personalized thresholds per user
+# Each user gets custom threshold based on their enrollment variance
+# Users with consistent faces → tighter threshold
+# Users with varying faces → looser threshold
+
+MIN_MATCH_CONFIDENCE = 0.75  # Minimum confidence for positive match (0-1)
+# Even if distance is below threshold, confidence must be high enough
+# - 0.85: Very strict (high security)
+# - 0.75: Balanced (recommended)
+# - 0.65: Lenient (convenience)
+
+# Liveness Detection Movement Thresholds
+MAX_MOVEMENT_THRESHOLD = 30.0  # Maximum pixels of natural head movement
+# Used in motion-based liveness detection
+# Too high: Won't catch someone moving a photo
+# Too low: Natural movements trigger false positive
+# 30px at typical webcam distance is empirically determined balance
 
 # Enhanced Enrollment
 ENROLLMENT_SAMPLES = 10  # Increased from 5 for better coverage

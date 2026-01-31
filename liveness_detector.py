@@ -55,7 +55,7 @@ class LivenessDetector:
         # Eye blink detection state
         self.blink_detected = False
         self.blink_check_start = None
-        self.blink_count = 0
+        self.blink_count = 0  # Counts total blinks in current session
         # Eye Aspect Ratio (EAR) threshold empirically determined:
         # - Open eyes: EAR ≈ 0.25-0.35
         # - Closed eyes: EAR < 0.21
@@ -65,7 +65,11 @@ class LivenessDetector:
         
         # Head movement detection
         self.head_positions = deque(maxlen=10)
-        self.movement_threshold = 5.0  # pixels
+        # Movement threshold: Maximum pixels of movement considered natural
+        # Too high: Won't detect someone moving a photo
+        # Too low: Natural head movement triggers false positive
+        # 30px at typical webcam distance is good balance
+        self.movement_threshold = getattr(config, 'MAX_MOVEMENT_THRESHOLD', 30.0)
         
         # Challenge-response system for high-security scenarios
         self.challenge_active = False
@@ -240,7 +244,9 @@ class LivenessDetector:
         # 3. Extreme movement (>30px): might be someone physically moving a photo
         
         is_static = avg_movement < 1.0 and movement_variance < 0.5
-        is_excessive = max_movement > 30.0  # Someone moving photo/screen
+        # Check if movement is excessive (someone physically moving a photo/screen)
+        # Threshold: 30 pixels (configurable via config.MAX_MOVEMENT_THRESHOLD)
+        is_excessive = max_movement > self.movement_threshold
         
         if is_static:
             # Likely a static photo or very still video
@@ -412,6 +418,10 @@ class LivenessDetector:
         self.challenge_start_time = time.time()
         self.challenge_active = True
         
+        # Reset blink counter for this challenge
+        # Critical: Prevents accumulation of blinks from previous attempts
+        self.blink_count = 0
+        
         # Map challenge types to user-friendly instructions
         instructions = {
             'blink': "Please blink twice",
@@ -462,11 +472,16 @@ class LivenessDetector:
         return completed, False
     
     def reset_challenge(self):
-        """Reset challenge state"""
+        """
+        Reset challenge state
+        
+        Called after challenge completion or cancellation.
+        Ensures clean state for next authentication attempt.
+        """
         self.challenge_active = False
         self.current_challenge = None
         self.challenge_start_time = None
-        self.blink_count = 0
+        self.blink_count = 0  # Reset blink counter to prevent accumulation
     
     def is_live(self, current_frame, face_box, landmarks):
         """
