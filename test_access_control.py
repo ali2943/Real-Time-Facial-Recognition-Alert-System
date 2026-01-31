@@ -121,12 +121,23 @@ def test_config_values():
         print(f"✓ MAX_RECONNECT_ATTEMPTS: {config.MAX_RECONNECT_ATTEMPTS}")
         print(f"✓ FRAME_SKIP: {config.FRAME_SKIP}")
         
-        # Check updated detection values
-        assert config.FACE_DETECTION_CONFIDENCE == 0.5, "FACE_DETECTION_CONFIDENCE not 0.5"
+        # Check updated detection values for improved accuracy
+        assert config.FACE_DETECTION_CONFIDENCE == 0.7, "FACE_DETECTION_CONFIDENCE not 0.7"
         print(f"✓ FACE_DETECTION_CONFIDENCE: {config.FACE_DETECTION_CONFIDENCE}")
         
-        assert config.MIN_FACE_SIZE == 20, "MIN_FACE_SIZE not 20"
+        assert config.MIN_FACE_SIZE == 60, "MIN_FACE_SIZE not 60"
         print(f"✓ MIN_FACE_SIZE: {config.MIN_FACE_SIZE}")
+        
+        # Check updated recognition threshold for improved accuracy
+        assert config.RECOGNITION_THRESHOLD == 1.0, "RECOGNITION_THRESHOLD not 1.0"
+        print(f"✓ RECOGNITION_THRESHOLD: {config.RECOGNITION_THRESHOLD}")
+        
+        # Check debug settings
+        assert config.DEBUG_MODE == True, "DEBUG_MODE not True"
+        print(f"✓ DEBUG_MODE: {config.DEBUG_MODE}")
+        
+        assert config.SHOW_DISTANCE_ON_SCREEN == True, "SHOW_DISTANCE_ON_SCREEN not True"
+        print(f"✓ SHOW_DISTANCE_ON_SCREEN: {config.SHOW_DISTANCE_ON_SCREEN}")
         
         print("\n[TEST] Configuration value tests passed!")
         return True

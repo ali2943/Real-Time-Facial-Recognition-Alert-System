@@ -3,13 +3,15 @@ Configuration settings for the Real-Time Facial Recognition Alert System
 """
 
 # Face Detection Settings
-FACE_DETECTION_CONFIDENCE = 0.5  # Minimum confidence for face detection (0-1)
-MIN_FACE_SIZE = 20  # Minimum face size in pixels
+FACE_DETECTION_CONFIDENCE = 0.7  # Minimum confidence for face detection (0-1) - Balance between detection and quality
+MIN_FACE_SIZE = 60  # Minimum face size in pixels - Increased from 20 to get better quality faces
 
-# Face Recognition Settings
-RECOGNITION_THRESHOLD = 0.6  # Maximum distance for a match (lower = stricter)
+# Face Recognition Settings - CRITICAL FOR ACCURACY
+RECOGNITION_THRESHOLD = 1.0  # Maximum distance for a match (lower = stricter) - Increased from 0.6 to 1.0 for FaceNet
+# FaceNet typically uses 0.8-1.2 range - This will be calibrated based on testing
 EMBEDDING_SIZE = 128  # Size of face embeddings
-DEBUG_MODE = False  # Print detailed debug information (distance values, matching process)
+DEBUG_MODE = True  # Print detailed debug information (distance values, matching process) - ENABLED FOR TESTING
+SHOW_DISTANCE_ON_SCREEN = True  # Display distance on bounding box - ENABLED FOR DEBUGGING
 
 # Camera Settings
 CAMERA_INDEX = 0  # Default camera (0 = primary webcam)
