@@ -107,14 +107,25 @@ class FacialRecognitionSystem:
                         continue
                     
                     # Generate embedding
+                    if config.DEBUG_MODE:
+                        print(f"[DEBUG] Face detected, generating embedding...")
                     embedding = self.recognizer.get_embedding(face)
                     
                     # Find match in database
+                    if config.DEBUG_MODE:
+                        print(f"[DEBUG] Searching database for match...")
                     matched_name, distance = self.db_manager.find_match(embedding, self.recognizer)
+                    
+                    if config.DEBUG_MODE:
+                        if matched_name:
+                            print(f"[DEBUG] Best match: {matched_name}, Distance: {distance:.4f}, Threshold: {config.RECOGNITION_THRESHOLD}")
+                        else:
+                            dist_str = f"{distance:.4f}" if distance is not None else "N/A"
+                            print(f"[DEBUG] Best match: None, Distance: {dist_str}, Threshold: {config.RECOGNITION_THRESHOLD}")
                     
                     if matched_name:
                         # ACCESS GRANTED - Authorized user
-                        print(f"[SUCCESS] Access Granted: {matched_name}")
+                        print(f"[SUCCESS] Access Granted: {matched_name} (distance: {distance:.4f})")
                         self.access_state = "granted"
                         self.access_state_until = current_time + config.ACCESS_GRANTED_DISPLAY_TIME
                         self.last_access_person = matched_name
@@ -131,7 +142,10 @@ class FacialRecognitionSystem:
                         break
                     else:
                         # ACCESS DENIED - Unauthorized user
-                        print(f"[FAILURE] Access Denied: Unknown Person")
+                        if distance is not None and distance != float('inf'):
+                            print(f"[FAILURE] Access Denied: Unknown Person (best distance: {distance:.4f})")
+                        else:
+                            print(f"[FAILURE] Access Denied: Unknown Person (no database entries)")
                         self.access_state = "denied"
                         self.access_state_until = current_time + config.ACCESS_DENIED_DISPLAY_TIME
                         self.last_access_time = current_time

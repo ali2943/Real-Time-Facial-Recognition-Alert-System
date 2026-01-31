@@ -123,4 +123,5 @@ class DatabaseManager:
         if best_distance < config.RECOGNITION_THRESHOLD:
             return best_match, best_distance
         else:
-            return None, None
+            # Return None for name but keep distance for debugging
+            return None, best_distance

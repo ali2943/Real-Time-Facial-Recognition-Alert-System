@@ -9,6 +9,7 @@ MIN_FACE_SIZE = 20  # Minimum face size in pixels
 # Face Recognition Settings
 RECOGNITION_THRESHOLD = 0.6  # Maximum distance for a match (lower = stricter)
 EMBEDDING_SIZE = 128  # Size of face embeddings
+DEBUG_MODE = False  # Print detailed debug information (distance values, matching process)
 
 # Camera Settings
 CAMERA_INDEX = 0  # Default camera (0 = primary webcam)
