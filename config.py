@@ -8,7 +8,10 @@ MIN_FACE_SIZE = 60  # Minimum face size in pixels - Increased from 20 to get bet
 
 # Face Recognition Settings - CRITICAL FOR ACCURACY
 RECOGNITION_THRESHOLD = 1.0  # Maximum distance for a match (lower = stricter) - Increased from 0.6 to 1.0 for FaceNet
-# FaceNet typically uses 0.8-1.2 range - This will be calibrated based on testing
+# FaceNet typically uses 0.8-1.2 range - This threshold will be calibrated based on real-world testing
+# NOTE: Higher threshold (1.0) allows for better recognition of authorized users under varying conditions
+# (lighting, angles, facial expressions) while still maintaining security with the improved face quality
+# from higher MIN_FACE_SIZE (60px) and FACE_DETECTION_CONFIDENCE (0.7) settings
 EMBEDDING_SIZE = 128  # Size of face embeddings
 DEBUG_MODE = True  # Print detailed debug information (distance values, matching process) - ENABLED FOR TESTING
 SHOW_DISTANCE_ON_SCREEN = True  # Display distance on bounding box - ENABLED FOR DEBUGGING

@@ -133,10 +133,10 @@ def test_config_values():
         print(f"✓ RECOGNITION_THRESHOLD: {config.RECOGNITION_THRESHOLD}")
         
         # Check debug settings
-        assert config.DEBUG_MODE == True, "DEBUG_MODE not True"
+        assert config.DEBUG_MODE, "DEBUG_MODE not True"
         print(f"✓ DEBUG_MODE: {config.DEBUG_MODE}")
         
-        assert config.SHOW_DISTANCE_ON_SCREEN == True, "SHOW_DISTANCE_ON_SCREEN not True"
+        assert config.SHOW_DISTANCE_ON_SCREEN, "SHOW_DISTANCE_ON_SCREEN not True"
         print(f"✓ SHOW_DISTANCE_ON_SCREEN: {config.SHOW_DISTANCE_ON_SCREEN}")
         
         print("\n[TEST] Configuration value tests passed!")
