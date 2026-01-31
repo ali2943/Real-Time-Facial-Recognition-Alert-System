@@ -1,8 +1,8 @@
 # Core dependencies for Real-Time Facial Recognition Alert System
-opencv-python==4.8.1.78
-numpy==1.24.3
-mtcnn==0.1.1
-keras==2.13.1
-tensorflow==2.13.0
-pillow==10.0.0
-scipy==1.11.1
+opencv-python>=4.5.0
+numpy>=1.21.0
+tensorflow>=2.11.1
+mtcnn>=0.1.0
+keras-facenet>=0.3.0
+pillow>=9.0.0
+scipy>=1.7.0

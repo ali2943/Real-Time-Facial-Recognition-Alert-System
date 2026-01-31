@@ -5,7 +5,6 @@ Generates face embeddings for comparison
 
 import cv2
 import numpy as np
-from keras.models import load_model
 from keras_facenet import FaceNet
 import config
 
