@@ -26,6 +26,9 @@ class FacialRecognitionSystem:
         """Initialize the facial recognition system"""
         print("[INFO] Initializing Security Door Access Control System...")
         
+        # Store recognition threshold (may be adjusted for InsightFace)
+        self.recognition_threshold = config.RECOGNITION_THRESHOLD
+        
         # Initialize components - Try InsightFace first, fallback to FaceNet
         if config.USE_INSIGHTFACE:
             try:
@@ -38,9 +41,10 @@ class FacialRecognitionSystem:
                 print("[INFO] Using InsightFace (ArcFace) for recognition")
                 
                 # Adjust threshold for InsightFace (uses cosine distance, different scale)
-                if config.RECOGNITION_THRESHOLD > 0.8:
-                    config.RECOGNITION_THRESHOLD = 0.6
-                    print(f"[INFO] Adjusted threshold for InsightFace: {config.RECOGNITION_THRESHOLD}")
+                # Store in instance variable instead of modifying global config
+                if self.recognition_threshold > 0.8:
+                    self.recognition_threshold = 0.6
+                    print(f"[INFO] Adjusted threshold for InsightFace: {self.recognition_threshold}")
             except (ImportError, RuntimeError) as e:
                 print(f"[WARNING] InsightFace not available ({e}), using FaceNet")
                 self.detector = FaceDetector()
@@ -227,14 +231,14 @@ class FacialRecognitionSystem:
                         matched_name, distance = self.db_manager.find_match(
                             embedding, self.recognizer
                         )
-                        confidence = 1.0 - (distance / config.RECOGNITION_THRESHOLD) if matched_name else 0.0
+                        confidence = 1.0 - (distance / self.recognition_threshold) if matched_name else 0.0
                     
                     if config.DEBUG_MODE:
                         if matched_name:
-                            print(f"[DEBUG] Best match: {matched_name}, Distance: {distance:.4f}, Confidence: {confidence:.2%}, Threshold: {config.RECOGNITION_THRESHOLD}")
+                            print(f"[DEBUG] Best match: {matched_name}, Distance: {distance:.4f}, Confidence: {confidence:.2%}, Threshold: {self.recognition_threshold}")
                         else:
                             dist_str = f"{distance:.4f}" if distance is not None else "N/A"
-                            print(f"[DEBUG] Best match: None, Distance: {dist_str}, Threshold: {config.RECOGNITION_THRESHOLD}")
+                            print(f"[DEBUG] Best match: None, Distance: {dist_str}, Threshold: {self.recognition_threshold}")
                     
                     # Step 6: Confidence Check
                     if matched_name and confidence >= config.MIN_MATCH_CONFIDENCE:

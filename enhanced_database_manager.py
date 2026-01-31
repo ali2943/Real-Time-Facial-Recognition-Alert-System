@@ -208,6 +208,8 @@ class EnhancedDatabaseManager:
                 intra_distances.append(distance)
         
         # Set threshold as mean + 2 * std of intra-class distances
+        # This represents approximately 95% confidence interval assuming normal distribution
+        # Allows for natural variation within user's samples while rejecting outliers
         mean_intra = np.mean(intra_distances)
         std_intra = np.std(intra_distances)
         

@@ -257,6 +257,13 @@ class FaceQualityChecker:
         checks = self.check_all(face_image, landmarks)
         
         # Calculate weighted score
+        # Weight distribution rationale:
+        # - blur (25%): Most critical for feature extraction accuracy
+        # - brightness (20%): Essential for consistent lighting
+        # - contrast (20%): Important for feature visibility
+        # - resolution (15%): Minimum detail requirement
+        # - pose (15%): Face orientation impacts matching
+        # - eyes_visible (5%): Basic sanity check, binary yes/no
         weights = {
             'blur': 25,
             'brightness': 20,

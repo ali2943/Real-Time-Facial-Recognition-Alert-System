@@ -29,7 +29,7 @@ class LivenessDetector:
         # Blink detection
         self.blink_detected = False
         self.blink_check_start = None
-        self.ear_threshold = 0.21  # Eye Aspect Ratio threshold for blink
+        self.ear_threshold = 0.21  # Eye Aspect Ratio threshold for blink (empirically determined, <0.21 indicates closed eye)
         
         print(f"[INFO] Liveness Detector initialized (method: {self.method})")
     

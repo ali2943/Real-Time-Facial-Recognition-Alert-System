@@ -23,7 +23,7 @@ SHOW_DISTANCE_ON_SCREEN = True  # Display distance on bounding box - ENABLED FOR
 # Model Selection
 USE_INSIGHTFACE = True  # Use InsightFace (ArcFace) if available, fallback to FaceNet
 INSIGHTFACE_MODEL = 'buffalo_l'  # Options: 'buffalo_l', 'buffalo_s', 'antelopev2'
-GPU_ENABLED = True  # Enable GPU acceleration if available
+GPU_ENABLED = False  # Enable GPU acceleration if available (set True only if GPU/CUDA is installed)
 
 # Face Quality Checks
 ENABLE_QUALITY_CHECKS = True
