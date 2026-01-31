@@ -120,7 +120,7 @@ class FacialRecognitionSystem:
                         if matched_name:
                             print(f"[DEBUG] Best match: {matched_name}, Distance: {distance:.4f}, Threshold: {config.RECOGNITION_THRESHOLD}")
                         else:
-                            print(f"[DEBUG] Best match: None, Distance: {distance if distance else 'N/A'}, Threshold: {config.RECOGNITION_THRESHOLD}")
+                            print(f"[DEBUG] Best match: None, Distance: {distance if distance is not None else 'N/A'}, Threshold: {config.RECOGNITION_THRESHOLD}")
                     
                     if matched_name:
                         # ACCESS GRANTED - Authorized user
