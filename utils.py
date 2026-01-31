@@ -239,7 +239,7 @@ def display_system_status(frame, fps, uptime, last_event):
         )
 
 
-def draw_face_box(frame, box, label, is_authorized):
+def draw_face_box(frame, box, label, is_authorized, distance=None):
     """
     Draw bounding box and label on frame
     
@@ -248,6 +248,7 @@ def draw_face_box(frame, box, label, is_authorized):
         box: [x, y, width, height]
         label: Text label to display
         is_authorized: True for authorized, False for unauthorized
+        distance: Optional distance value to display (if SHOW_DISTANCE_ON_SCREEN enabled)
     """
     x, y, w, h = box
     
@@ -262,6 +263,10 @@ def draw_face_box(frame, box, label, is_authorized):
         text = f"{config.ALERT_MESSAGE_LEGIT}: {label}"
     else:
         text = config.ALERT_MESSAGE_UNKNOWN
+    
+    # Add distance if enabled and provided
+    if config.SHOW_DISTANCE_ON_SCREEN and distance is not None:
+        text += f" (D: {distance:.3f})"
     
     # Calculate text size for background
     (text_width, text_height), baseline = cv2.getTextSize(
