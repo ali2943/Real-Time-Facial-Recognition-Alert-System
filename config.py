@@ -16,6 +16,49 @@ EMBEDDING_SIZE = 128  # Size of face embeddings
 DEBUG_MODE = True  # Print detailed debug information (distance values, matching process) - ENABLED FOR TESTING
 SHOW_DISTANCE_ON_SCREEN = True  # Display distance on bounding box - ENABLED FOR DEBUGGING
 
+# ============================================
+# ACCURACY ENHANCEMENT SETTINGS
+# ============================================
+
+# Model Selection
+USE_INSIGHTFACE = True  # Use InsightFace (ArcFace) if available, fallback to FaceNet
+INSIGHTFACE_MODEL = 'buffalo_l'  # Options: 'buffalo_l', 'buffalo_s', 'antelopev2'
+GPU_ENABLED = False  # Enable GPU acceleration if available (set True only if GPU/CUDA is installed)
+
+# Face Quality Checks
+ENABLE_QUALITY_CHECKS = True
+BLUR_THRESHOLD = 100.0  # Laplacian variance (higher = sharper)
+BRIGHTNESS_RANGE = (40, 220)  # Acceptable brightness range
+MIN_CONTRAST = 30  # Minimum contrast (std dev)
+MAX_POSE_ANGLE = 30  # Maximum head rotation in degrees
+MIN_FACE_RESOLUTION = 112  # Minimum face size in pixels
+OVERALL_QUALITY_THRESHOLD = 75  # Overall quality score (0-100)
+
+# Face Alignment
+ENABLE_FACE_ALIGNMENT = True
+ALIGNED_FACE_SIZE = (112, 112)  # Standard aligned face size
+
+# Liveness Detection
+LIVENESS_ENABLED = False  # Set to True to enable anti-spoofing (may reduce performance)
+LIVENESS_METHOD = 'motion'  # Options: 'motion', 'blink', 'texture', 'combined'
+LIVENESS_FRAMES_REQUIRED = 5  # Frames to analyze for motion
+REQUIRE_BLINK = False  # Require blink detection (slower but more secure)
+BLINK_TIMEOUT = 3  # Seconds to wait for blink
+TEXTURE_ANALYSIS_THRESHOLD = 0.7
+
+# Recognition Improvements
+# NOTE: When USE_INSIGHTFACE is True, RECOGNITION_THRESHOLD should be lower (0.4-0.6 vs 0.8-1.2 for FaceNet)
+# The threshold is automatically adjusted when InsightFace is loaded
+USE_KNN_MATCHING = True  # Use k-nearest neighbors instead of single match
+KNN_K = 3  # Number of neighbors to consider
+ADAPTIVE_THRESHOLD_PER_USER = True  # Use personalized thresholds
+MIN_MATCH_CONFIDENCE = 0.75  # Minimum confidence for positive match
+
+# Enhanced Enrollment
+ENROLLMENT_SAMPLES = 10  # Increased from 5 for better coverage
+ENROLLMENT_QUALITY_THRESHOLD = 80  # Higher quality required for enrollment
+CAPTURE_POSE_VARIATIONS = True  # Guide user through different poses
+
 # Camera Settings
 CAMERA_INDEX = 0  # Default camera (0 = primary webcam)
 FRAME_WIDTH = 640

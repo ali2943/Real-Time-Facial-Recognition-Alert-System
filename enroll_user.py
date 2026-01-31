@@ -9,11 +9,12 @@ import argparse
 from face_detector import FaceDetector
 from face_recognition_model import FaceRecognitionModel
 from database_manager import DatabaseManager
+import config
 
 
 def enroll_user(name, num_samples=5):
     """
-    Enroll a new authorized user
+    Enroll a new authorized user with enhanced quality checks
     
     Args:
         name: User name
@@ -22,10 +23,65 @@ def enroll_user(name, num_samples=5):
     print(f"\n[INFO] Enrolling user: {name}")
     print(f"[INFO] Will capture {num_samples} face samples")
     
-    # Initialize components
-    detector = FaceDetector()
-    recognizer = FaceRecognitionModel()
-    db_manager = DatabaseManager()
+    # Initialize components - Try InsightFace first, fallback to FaceNet
+    if config.USE_INSIGHTFACE:
+        try:
+            from insightface_recognizer import InsightFaceRecognizer
+            recognizer = InsightFaceRecognizer(
+                model_name=config.INSIGHTFACE_MODEL,
+                gpu_enabled=config.GPU_ENABLED
+            )
+            detector = recognizer  # InsightFace has built-in detector
+            print("[INFO] Using InsightFace for enrollment")
+        except (ImportError, RuntimeError) as e:
+            print(f"[WARNING] InsightFace not available ({e}), using FaceNet")
+            detector = FaceDetector()
+            recognizer = FaceRecognitionModel()
+    else:
+        detector = FaceDetector()
+        recognizer = FaceRecognitionModel()
+    
+    # Initialize quality checker if enabled
+    quality_checker = None
+    if config.ENABLE_QUALITY_CHECKS:
+        try:
+            from face_quality_checker import FaceQualityChecker
+            quality_checker = FaceQualityChecker()
+        except ImportError:
+            print("[WARNING] Quality checker not available")
+    
+    # Initialize face aligner if enabled
+    face_aligner = None
+    if config.ENABLE_FACE_ALIGNMENT:
+        try:
+            from face_aligner import FaceAligner
+            face_aligner = FaceAligner()
+        except ImportError:
+            print("[WARNING] Face aligner not available")
+    
+    # Enhanced database manager
+    try:
+        from enhanced_database_manager import EnhancedDatabaseManager
+        db_manager = EnhancedDatabaseManager()
+    except ImportError:
+        db_manager = DatabaseManager()
+    
+    # Pose instructions for varied samples
+    if config.CAPTURE_POSE_VARIATIONS and num_samples >= 10:
+        poses = [
+            "Look straight at camera",
+            "Turn head slightly left",
+            "Turn head slightly right",
+            "Tilt chin up a bit",
+            "Tilt chin down a bit",
+            "Neutral expression",
+            "Slight smile",
+            "Look straight (2)",
+            "Look straight (3)",
+            "Look straight (4)"
+        ]
+    else:
+        poses = ["Look at camera"] * num_samples
     
     # Open camera
     cap = cv2.VideoCapture(0)
@@ -39,6 +95,7 @@ def enroll_user(name, num_samples=5):
     print("[INFO] Press 'q' to quit enrollment")
     
     samples_captured = 0
+    current_pose_index = 0
     
     while samples_captured < num_samples:
         ret, frame = cap.read()
@@ -55,6 +112,34 @@ def enroll_user(name, num_samples=5):
             box = detection['box']
             x, y, w, h = box
             cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
+        
+        # Display current pose instruction
+        if config.CAPTURE_POSE_VARIATIONS:
+            pose_text = f"Pose: {poses[current_pose_index]}"
+            cv2.putText(frame, pose_text, (10, 100), cv2.FONT_HERSHEY_SIMPLEX, 
+                       0.8, (255, 255, 0), 2)
+        
+        # Display quality feedback if available
+        if quality_checker and len(detections) == 1:
+            face = detector.extract_face(frame, detections[0]['box'])
+            landmarks = detections[0].get('keypoints', None)
+            
+            quality_score = quality_checker.get_quality_score(face, landmarks)
+            quality_checks = quality_checker.check_all(face, landmarks)
+            
+            # Display quality score
+            score_color = (0, 255, 0) if quality_score >= config.ENROLLMENT_QUALITY_THRESHOLD else (0, 165, 255)
+            cv2.putText(frame, f"Quality: {quality_score:.1f}/100", 
+                       (10, 140), cv2.FONT_HERSHEY_SIMPLEX, 0.7, score_color, 2)
+            
+            # Display individual quality checks
+            y_offset = 170
+            for check_name, result in quality_checks.items():
+                if not result['passed']:
+                    text = f"✗ {check_name}"
+                    cv2.putText(frame, text, (10, y_offset), 
+                               cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 1)
+                    y_offset += 20
         
         # Display instructions
         cv2.putText(
@@ -85,15 +170,39 @@ def enroll_user(name, num_samples=5):
             if len(detections) == 1:
                 # Extract face
                 face = detector.extract_face(frame, detections[0]['box'])
+                landmarks = detections[0].get('keypoints', None)
+                
+                # Check quality if enabled
+                quality_ok = True
+                if quality_checker:
+                    quality_score = quality_checker.get_quality_score(face, landmarks)
+                    quality_ok = quality_score >= config.ENROLLMENT_QUALITY_THRESHOLD
+                    
+                    if not quality_ok:
+                        print(f"[WARNING] Quality too low ({quality_score:.1f}/100). Please improve lighting/focus.")
+                        continue
+                
+                # Align face if enabled
+                if face_aligner and landmarks:
+                    face = face_aligner.align_face(face, landmarks)
                 
                 # Generate embedding
                 try:
-                    embedding = recognizer.get_embedding(face)
+                    # For InsightFace, try to use face_object for better performance
+                    if hasattr(recognizer, '__class__') and 'InsightFace' in recognizer.__class__.__name__:
+                        face_object = detections[0].get('face_object', None)
+                        if face_object is not None:
+                            embedding = recognizer.get_embedding(face_object=face_object)
+                        else:
+                            embedding = recognizer.get_embedding(face)
+                    else:
+                        embedding = recognizer.get_embedding(face)
                     
                     # Add to database
                     db_manager.add_user(name, embedding)
                     
                     samples_captured += 1
+                    current_pose_index = min(current_pose_index + 1, len(poses) - 1)
                     print(f"[INFO] Captured sample {samples_captured}/{num_samples}")
                 except Exception as e:
                     print(f"[ERROR] Failed to generate embedding: {e}")
@@ -120,7 +229,8 @@ def main():
     """Main function for enrollment script"""
     parser = argparse.ArgumentParser(description='Enroll authorized users')
     parser.add_argument('--name', type=str, required=True, help='Name of the user to enroll')
-    parser.add_argument('--samples', type=int, default=5, help='Number of face samples to capture (default: 5)')
+    parser.add_argument('--samples', type=int, default=config.ENROLLMENT_SAMPLES, 
+                       help=f'Number of face samples to capture (default: {config.ENROLLMENT_SAMPLES})')
     
     args = parser.parse_args()
     
