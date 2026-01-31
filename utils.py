@@ -20,7 +20,7 @@ def display_access_granted(frame, person_name):
     
     # Main message
     text = config.ACCESS_GRANTED_TEXT
-    font = cv2.FONT_HERSHEY_BOLD
+    font = cv2.FONT_HERSHEY_DUPLEX  # Bolder font
     font_scale = config.ACCESS_TEXT_FONT_SCALE
     thickness = config.ACCESS_TEXT_THICKNESS
     color = config.ACCESS_GRANTED_COLOR
@@ -87,7 +87,7 @@ def display_access_denied(frame):
     
     # Main message
     text = config.ACCESS_DENIED_TEXT
-    font = cv2.FONT_HERSHEY_BOLD
+    font = cv2.FONT_HERSHEY_DUPLEX  # Bolder font
     font_scale = config.ACCESS_TEXT_FONT_SCALE
     thickness = config.ACCESS_TEXT_THICKNESS
     color = config.ACCESS_DENIED_COLOR
