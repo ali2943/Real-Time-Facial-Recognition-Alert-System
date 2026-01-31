@@ -16,6 +16,7 @@ from utils import (
     log_access_event, display_system_status
 )
 import config
+import numpy as np
 
 
 class FacialRecognitionSystem:
@@ -25,10 +26,67 @@ class FacialRecognitionSystem:
         """Initialize the facial recognition system"""
         print("[INFO] Initializing Security Door Access Control System...")
         
-        # Initialize components
-        self.detector = FaceDetector()
-        self.recognizer = FaceRecognitionModel()
-        self.db_manager = DatabaseManager()
+        # Initialize components - Try InsightFace first, fallback to FaceNet
+        if config.USE_INSIGHTFACE:
+            try:
+                from insightface_recognizer import InsightFaceRecognizer
+                self.recognizer = InsightFaceRecognizer(
+                    model_name=config.INSIGHTFACE_MODEL,
+                    gpu_enabled=config.GPU_ENABLED
+                )
+                self.detector = self.recognizer  # InsightFace has built-in detector
+                print("[INFO] Using InsightFace (ArcFace) for recognition")
+                
+                # Adjust threshold for InsightFace (uses cosine distance, different scale)
+                if config.RECOGNITION_THRESHOLD > 0.8:
+                    config.RECOGNITION_THRESHOLD = 0.6
+                    print(f"[INFO] Adjusted threshold for InsightFace: {config.RECOGNITION_THRESHOLD}")
+            except (ImportError, RuntimeError) as e:
+                print(f"[WARNING] InsightFace not available ({e}), using FaceNet")
+                self.detector = FaceDetector()
+                self.recognizer = FaceRecognitionModel()
+        else:
+            self.detector = FaceDetector()
+            self.recognizer = FaceRecognitionModel()
+        
+        # Add new components
+        if config.ENABLE_QUALITY_CHECKS:
+            try:
+                from face_quality_checker import FaceQualityChecker
+                self.quality_checker = FaceQualityChecker()
+            except ImportError as e:
+                print(f"[WARNING] Quality checker not available: {e}")
+                self.quality_checker = None
+        else:
+            self.quality_checker = None
+        
+        if config.ENABLE_FACE_ALIGNMENT:
+            try:
+                from face_aligner import FaceAligner
+                self.face_aligner = FaceAligner()
+            except ImportError as e:
+                print(f"[WARNING] Face aligner not available: {e}")
+                self.face_aligner = None
+        else:
+            self.face_aligner = None
+        
+        if config.LIVENESS_ENABLED:
+            try:
+                from liveness_detector import LivenessDetector
+                self.liveness_detector = LivenessDetector()
+            except ImportError as e:
+                print(f"[WARNING] Liveness detector not available: {e}")
+                self.liveness_detector = None
+        else:
+            self.liveness_detector = None
+        
+        # Enhanced database manager
+        try:
+            from enhanced_database_manager import EnhancedDatabaseManager
+            self.db_manager = EnhancedDatabaseManager()
+        except ImportError:
+            print("[WARNING] Enhanced database manager not available, using standard")
+            self.db_manager = DatabaseManager()
         
         # Check if database has users
         users = self.db_manager.get_all_users()
@@ -106,26 +164,82 @@ class FacialRecognitionSystem:
                     if face.size == 0:
                         continue
                     
-                    # Generate embedding
+                    # Get landmarks if available
+                    landmarks = detection.get('keypoints', None)
+                    
+                    # Step 1: Quality Check
+                    if self.quality_checker is not None:
+                        quality_result = self.quality_checker.check_all(face, landmarks)
+                        quality_score = self.quality_checker.get_quality_score(face, landmarks)
+                        
+                        if config.DEBUG_MODE:
+                            print(f"[DEBUG] Face quality score: {quality_score:.1f}/100")
+                        
+                        if quality_score < config.OVERALL_QUALITY_THRESHOLD:
+                            if config.DEBUG_MODE:
+                                print(f"[DEBUG] Quality too low ({quality_score:.1f}), skipping face")
+                            # Show quality feedback to user
+                            self._display_quality_feedback(frame, quality_result, quality_score)
+                            continue
+                    
+                    # Step 2: Liveness Detection
+                    if self.liveness_detector is not None:
+                        is_live, liveness_conf, reason = self.liveness_detector.is_live(
+                            frame, box, landmarks
+                        )
+                        
+                        if config.DEBUG_MODE:
+                            print(f"[DEBUG] Liveness check: {is_live}, confidence: {liveness_conf:.2f}, reason: {reason}")
+                        
+                        if not is_live:
+                            print(f"[SECURITY] Liveness check failed: {reason}")
+                            self._display_spoof_warning(frame)
+                            log_access_event("SPOOF ATTEMPT", reason=reason)
+                            continue
+                    
+                    # Step 3: Face Alignment
+                    if self.face_aligner is not None and landmarks:
+                        face = self.face_aligner.align_face(face, landmarks)
+                    
+                    # Step 4: Generate Embedding
                     if config.DEBUG_MODE:
                         print(f"[DEBUG] Face detected, generating embedding...")
-                    embedding = self.recognizer.get_embedding(face)
                     
-                    # Find match in database
+                    # For InsightFace, try to use face_object for better performance
+                    if hasattr(self.recognizer, '__class__') and 'InsightFace' in self.recognizer.__class__.__name__:
+                        face_object = detection.get('face_object', None)
+                        if face_object is not None:
+                            embedding = self.recognizer.get_embedding(face_object=face_object)
+                        else:
+                            embedding = self.recognizer.get_embedding(face)
+                    else:
+                        embedding = self.recognizer.get_embedding(face)
+                    
+                    # Step 5: Enhanced Matching
                     if config.DEBUG_MODE:
                         print(f"[DEBUG] Searching database for match...")
-                    matched_name, distance = self.db_manager.find_match(embedding, self.recognizer)
+                    
+                    if config.USE_KNN_MATCHING and hasattr(self.db_manager, 'find_match_advanced'):
+                        matched_name, distance, confidence = self.db_manager.find_match_advanced(
+                            embedding, self.recognizer
+                        )
+                    else:
+                        matched_name, distance = self.db_manager.find_match(
+                            embedding, self.recognizer
+                        )
+                        confidence = 1.0 - (distance / config.RECOGNITION_THRESHOLD) if matched_name else 0.0
                     
                     if config.DEBUG_MODE:
                         if matched_name:
-                            print(f"[DEBUG] Best match: {matched_name}, Distance: {distance:.4f}, Threshold: {config.RECOGNITION_THRESHOLD}")
+                            print(f"[DEBUG] Best match: {matched_name}, Distance: {distance:.4f}, Confidence: {confidence:.2%}, Threshold: {config.RECOGNITION_THRESHOLD}")
                         else:
                             dist_str = f"{distance:.4f}" if distance is not None else "N/A"
                             print(f"[DEBUG] Best match: None, Distance: {dist_str}, Threshold: {config.RECOGNITION_THRESHOLD}")
                     
-                    if matched_name:
+                    # Step 6: Confidence Check
+                    if matched_name and confidence >= config.MIN_MATCH_CONFIDENCE:
                         # ACCESS GRANTED - Authorized user
-                        print(f"[SUCCESS] Access Granted: {matched_name} (distance: {distance:.4f})")
+                        print(f"[SUCCESS] Access Granted: {matched_name} (distance: {distance:.4f}, confidence: {confidence:.2%})")
                         self.access_state = "granted"
                         self.access_state_until = current_time + config.ACCESS_GRANTED_DISPLAY_TIME
                         self.last_access_person = matched_name
@@ -180,6 +294,29 @@ class FacialRecognitionSystem:
             display_system_ready(frame)
         
         return frame
+    
+    def _display_quality_feedback(self, frame, quality_result, quality_score):
+        """Display quality feedback on frame"""
+        y_offset = 100
+        for check_name, result in quality_result.items():
+            status = "✓" if result['passed'] else "✗"
+            color = (0, 255, 0) if result['passed'] else (0, 0, 255)
+            text = f"{status} {check_name}: {result.get('value', 'N/A')}"
+            cv2.putText(frame, text, (10, y_offset), cv2.FONT_HERSHEY_SIMPLEX, 
+                       0.5, color, 1)
+            y_offset += 25
+        
+        # Overall score
+        score_text = f"Quality Score: {quality_score:.1f}/100"
+        score_color = (0, 255, 0) if quality_score >= config.OVERALL_QUALITY_THRESHOLD else (0, 165, 255)
+        cv2.putText(frame, score_text, (10, y_offset), cv2.FONT_HERSHEY_SIMPLEX, 
+                   0.6, score_color, 2)
+    
+    def _display_spoof_warning(self, frame):
+        """Display spoofing warning on frame"""
+        text = "SPOOFING ATTEMPT DETECTED"
+        cv2.putText(frame, text, (50, frame.shape[0] // 2), 
+                   cv2.FONT_HERSHEY_SIMPLEX, 1.0, (0, 0, 255), 3)
     
     def run(self, camera_index=None):
         """
