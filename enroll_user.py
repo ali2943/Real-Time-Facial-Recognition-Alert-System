@@ -75,9 +75,9 @@ def enroll_user(name, num_samples=5):
             if angle == 0:
                 poses.append("Look straight at camera (front)")
             elif angle < 0:
-                poses.append(f"Turn head slightly left (~{abs(angle)}°)")
+                poses.append(f"Turn head slightly left (about {abs(angle)}°)")
             else:
-                poses.append(f"Turn head slightly right (~{angle}°)")
+                poses.append(f"Turn head slightly right (about {angle}°)")
         
         # Fill remaining with front-facing
         while len(poses) < num_samples:

@@ -299,7 +299,7 @@ MAX_MOVEMENT_THRESHOLD = 30.0  # Maximum pixels of natural head movement
 ENROLLMENT_SAMPLES = 10  # Increased from 5 for better coverage
 ENROLLMENT_QUALITY_THRESHOLD = 80  # Higher quality required for enrollment
 CAPTURE_POSE_VARIATIONS = True  # Guide user through different poses
-ENROLLMENT_ANGLES = [0, -15, 15, -10, 10]  # Pose variations in degrees (0=front, negative=left, positive=right)
+ENROLLMENT_ANGLES = [-15, -10, 0, 10, 15]  # Pose variations in degrees (left to right progression)
 ENROLLMENT_MIN_SAMPLES = 5  # Minimum samples required for enrollment
 ENROLLMENT_MAX_VARIANCE = 0.3  # Maximum allowed variance between embeddings
 

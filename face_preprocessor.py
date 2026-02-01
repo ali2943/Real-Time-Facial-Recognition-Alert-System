@@ -58,12 +58,12 @@ class FacePreprocessor:
         Works on L channel in LAB color space to preserve color information.
         
         Args:
-            face_img: Face image in BGR or RGB format
+            face_img: Face image in BGR format (OpenCV default)
             
         Returns:
-            Contrast-enhanced face image
+            Contrast-enhanced face image in BGR format
         """
-        # Convert to LAB color space
+        # Convert BGR to LAB color space
         lab = cv2.cvtColor(face_img, cv2.COLOR_BGR2LAB)
         
         # Split into L, A, B channels
