@@ -225,7 +225,8 @@ class FaceTracker:
                 boxes = np.array(list(self.box_history[face_id]))
                 stable_box = np.mean(boxes, axis=0).astype(int).tolist()
             else:
-                stable_box = data['box']
+                # Ensure consistent list format
+                stable_box = list(data['box']) if not isinstance(data['box'], list) else data['box']
             
             result[face_id] = {
                 'box': stable_box,

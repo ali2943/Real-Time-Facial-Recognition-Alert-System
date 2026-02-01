@@ -29,6 +29,10 @@ class AdvancedMatcher:
         self.cosine_weight = 0.6
         self.euclidean_weight = 0.4
         
+        # Confidence calibration parameters
+        self.MAX_CONFIDENCE_BOOST = 0.2
+        self.GAP_MULTIPLIER = 2
+        
         print("[INFO] Advanced Matcher initialized")
     
     def match_embedding(self, query_emb, database_embeddings, names, method='hybrid'):
@@ -154,8 +158,8 @@ class AdvancedMatcher:
         gap = sorted_sims[0] - sorted_sims[1]
         
         # Larger gap = higher confidence
-        # Confidence boost: 0 to 0.2 based on gap
-        confidence_boost = min(0.2, gap * 2)
+        # Confidence boost: 0 to MAX_CONFIDENCE_BOOST based on gap
+        confidence_boost = min(self.MAX_CONFIDENCE_BOOST, gap * self.GAP_MULTIPLIER)
         
         calibrated_conf = min(1.0, best_similarity + confidence_boost)
         

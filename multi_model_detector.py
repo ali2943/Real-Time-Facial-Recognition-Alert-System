@@ -29,7 +29,7 @@ class MultiModelFaceDetector:
                 "", (320, 320), 0.6, 0.3, 5000
             )
             self.has_yunet = True
-        except:
+        except (FileNotFoundError, cv2.error, AttributeError) as e:
             self.has_yunet = False
             print("[WARNING] YuNet not available")
         

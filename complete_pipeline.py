@@ -264,8 +264,9 @@ class CompleteFaceRecognitionPipeline:
                 face_result['enhancement'] = 'skipped'
             
             # Stage 9: Generate Embeddings
+            embedding_mode = 'ensemble' if mode == 'quality' else 'facenet'
             embedding = self.embedding_generator.generate_embedding(
-                enhanced_face, mode='facenet'  # or 'ensemble' for quality mode
+                enhanced_face, mode=embedding_mode
             )
             
             if embedding is None:

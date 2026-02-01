@@ -29,6 +29,11 @@ class PostProcessor:
         self.consistency_threshold = consistency_threshold
         self.min_frames = min_frames
         
+        # Spoofing detection thresholds
+        self.SPOOFING_HIGH_SIMILARITY = 0.99
+        self.SPOOFING_LOW_STD = 0.01
+        self.SPOOFING_HIGH_STD = 0.3
+        
         # History tracking
         self.recognition_history = deque(maxlen=10)
         
@@ -189,11 +194,11 @@ class PostProcessor:
         std_similarity = np.std(similarities)
         
         # Too stable = possible photo
-        if avg_similarity > 0.99 and std_similarity < 0.01:
+        if avg_similarity > self.SPOOFING_HIGH_SIMILARITY and std_similarity < self.SPOOFING_LOW_STD:
             return True, "Embeddings too stable (possible photo)"
         
         # Too unstable = possible manipulation
-        if std_similarity > 0.3:
+        if std_similarity > self.SPOOFING_HIGH_STD:
             return True, "Embeddings too unstable (possible manipulation)"
         
         return False, "Normal variation"
