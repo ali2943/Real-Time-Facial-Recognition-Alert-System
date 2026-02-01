@@ -133,16 +133,29 @@ class EyeStateDetector:
     def _extract_eye_region(self, face_img, landmarks, eye='left'):
         """Extract eye region from face"""
         if eye == 'left' and 'left_eye' in landmarks:
-            eye_point = landmarks['left_eye']
+            eye_points = landmarks['left_eye']
         elif eye == 'right' and 'right_eye' in landmarks:
-            eye_point = landmarks['right_eye']
+            eye_points = landmarks['right_eye']
         else:
             return None
         
+        # Calculate center of eye from all points
+        if isinstance(eye_points, np.ndarray) and len(eye_points.shape) == 2:
+            # eye_points is array of (x, y) coordinates
+            center_x = np.mean(eye_points[:, 0])
+            center_y = np.mean(eye_points[:, 1])
+        else:
+            # Fallback to first point if format is unexpected
+            try:
+                center_x = eye_points[0] if isinstance(eye_points[0], (int, float, np.number)) else eye_points[0][0]
+                center_y = eye_points[1] if isinstance(eye_points[1], (int, float, np.number)) else eye_points[0][1]
+            except:
+                return None
+        
         # Extract region around eye
         h, w = face_img.shape[:2]
-        x = self._normalize_coordinate(eye_point[0], w)
-        y = self._normalize_coordinate(eye_point[1], h)
+        x = self._normalize_coordinate(center_x, w)
+        y = self._normalize_coordinate(center_y, h)
         
         margin = 20
         x1, y1 = max(0, x-margin), max(0, y-margin)
@@ -152,6 +165,9 @@ class EyeStateDetector:
     
     def _normalize_coordinate(self, point, dimension):
         """Normalize coordinate to pixel value"""
+        # Handle numpy arrays and scalars
+        if isinstance(point, np.ndarray):
+            point = float(point)
         return int(point * dimension) if point < 1 else int(point)
     
     def _is_region_too_dark(self, region, threshold=40):
