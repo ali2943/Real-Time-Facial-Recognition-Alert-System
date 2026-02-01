@@ -196,6 +196,16 @@ class FacialRecognitionSystem:
         Process a single frame: detect faces, recognize, and draw alerts
         This is called once per button press for on-click verification
         
+        IMPORTANT: This function may return early if:
+        - No face is detected
+        - Face extraction fails
+        - Quality checks fail
+        - Liveness check fails
+        - Unknown person detected (for security)
+        
+        In all early return cases, frame state (last_access_time, last_event_text)
+        is properly updated before returning.
+        
         Args:
             frame: Video frame from camera
             

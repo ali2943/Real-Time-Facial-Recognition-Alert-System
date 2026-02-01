@@ -166,21 +166,31 @@ def log_access_event(name, status="ATTEMPTED", confidence=None, distance=None, r
     """
     Log access attempts with full details
     
+    New signature:
+        log_access_event(name, status, confidence=None, distance=None, reason=None, photo_filename=None)
+        - name: Person name or "UNKNOWN"
+        - status: "GRANTED", "DENIED - LOW CONFIDENCE", etc.
+    
+    Old signature (deprecated, for backward compatibility):
+        log_access_event(event_type, person_name=None, photo_filename=None)
+        - name (event_type): "ACCESS GRANTED", "ACCESS DENIED"
+        - person_name: Person's name
+    
     Args:
-        name: Person name or event type (e.g., "UNKNOWN", "SPOOF ATTEMPT")
+        name: Person name or event type (e.g., "UNKNOWN", "SPOOF ATTEMPT", "ACCESS GRANTED")
         status: Status of the event (e.g., "GRANTED", "DENIED - LOW CONFIDENCE")
         confidence: Optional confidence score (0.0 to 1.0)
         distance: Optional embedding distance
         reason: Optional reason for the event
         photo_filename: Optional filename of saved photo
-        person_name: Optional person name (for backward compatibility)
+        person_name: Optional person name (for backward compatibility only)
     """
     try:
         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         
-        # Handle backward compatibility - old signature: log_access_event(event_type, person_name=None, photo_filename=None)
-        # Detect old usage pattern
-        if person_name is not None and status == "ATTEMPTED":
+        # Detect old usage pattern more robustly:
+        # Old usage provides person_name AND doesn't provide new-style parameters
+        if person_name is not None and confidence is None and distance is None and reason is None:
             # Old usage: event_type in name, person_name provided
             event_type = name
             if person_name:

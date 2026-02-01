@@ -198,7 +198,8 @@ def test_threshold_enforcement():
             test1_pass = False
         
         # Test 2: Very different embedding (should NOT match)
-        different_embedding = np.random.randn(128) * 5  # Very different
+        # Use deterministic approach: create embedding orthogonal to stored one
+        different_embedding = -test_embedding + np.ones(128) * 10  # Far away and different
         matched_name2, distance2 = db_manager.find_match(different_embedding, recognizer)
         
         if distance2 >= config.RECOGNITION_THRESHOLD:
@@ -294,12 +295,12 @@ def test_enhanced_logging():
         with open(config.LOG_FILE_PATH, 'r') as f:
             log_contents = f.read()
         
-        # Check for expected content
+        # Check for expected content - use actual format from logging
         checks = [
             ("GRANTED" in log_contents, "GRANTED event"),
             ("TestUser" in log_contents, "User name"),
-            ("Confidence: 95" in log_contents or "Confidence: 0.95" in log_contents, "Confidence value"),
-            ("Distance: 0.35" in log_contents or "Distance: 0.3500" in log_contents, "Distance value"),
+            ("Confidence: 95.00%" in log_contents, "Confidence value (95.00%)"),
+            ("Distance: 0.3500" in log_contents, "Distance value (0.3500)"),
             ("UNKNOWN" in log_contents, "Unknown person"),
             ("DENIED - LOW CONFIDENCE" in log_contents, "Low confidence denial"),
         ]
