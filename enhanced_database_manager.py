@@ -256,6 +256,33 @@ class EnhancedDatabaseManager:
         
         return confidence
     
+    def calibrate_confidence(self, distance, threshold):
+        """
+        Convert distance to calibrated confidence score using sigmoid function
+        
+        This provides a smooth, well-calibrated confidence score that:
+        - Approaches 1.0 for very small distances (perfect matches)
+        - Approaches 0.0 for distances near/above threshold (poor matches)
+        - Has smooth gradients in between (no hard cutoffs)
+        
+        Args:
+            distance: Embedding distance
+            threshold: Recognition threshold
+            
+        Returns:
+            Calibrated confidence score (0.0 to 1.0)
+        """
+        # Normalize distance by threshold
+        norm_dist = distance / threshold
+        
+        # Sigmoid transformation centered at 0.7
+        # - norm_dist < 0.7: High confidence (above 0.5)
+        # - norm_dist = 0.7: Medium confidence (~0.5)
+        # - norm_dist > 0.7: Low confidence (below 0.5)
+        confidence = 1.0 / (1.0 + np.exp(5 * (norm_dist - 0.7)))
+        
+        return confidence
+    
     def find_match_advanced(self, query_embedding, recognizer):
         """
         Advanced matching with KNN, adaptive thresholds, and confidence scoring
