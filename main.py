@@ -284,7 +284,6 @@ class FacialRecognitionSystem:
                     if config.DEBUG_MODE:
                         print("[DEBUG] Applying image preprocessing...")
                     
-                    face_original = face.copy()  # Keep original
                     face = self.preprocessor.preprocess(face)  # Enhanced version
                 
                 # Step 1: Quality Check
@@ -350,12 +349,13 @@ class FacialRecognitionSystem:
                         if config.DEBUG_MODE:
                             print(f"[VALIDATION] Eye check passed: {eye_reason}")
                     
-                    # Eye occlusion check
+                    # Eye occlusion check (partial credit for less critical check)
                     eyes_occluded, occl_conf, occl_reason = self.eye_detector.detect_eye_occlusion(face, landmarks)
                     if eyes_occluded and occl_conf > config.OCCLUSION_CONFIDENCE_THRESHOLD:
                         validation_failures.append(f"Occlusion: {occl_reason}")
                     else:
-                        validation_score += 0.5  # Partial credit
+                        # Award partial credit (0.5) since occlusion is less critical than primary checks
+                        validation_score += 0.5
                 
                 # Soft validation logic
                 if config.USE_SOFT_VALIDATION:

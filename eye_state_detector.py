@@ -148,8 +148,8 @@ class EyeStateDetector:
             # Fallback to first point if format is unexpected
             try:
                 center_x = eye_points[0] if isinstance(eye_points[0], (int, float, np.number)) else eye_points[0][0]
-                center_y = eye_points[1] if isinstance(eye_points[1], (int, float, np.number)) else eye_points[0][1]
-            except:
+                center_y = eye_points[1] if isinstance(eye_points[1], (int, float, np.number)) else eye_points[1][1]
+            except (IndexError, TypeError, KeyError):
                 return None
         
         # Extract region around eye

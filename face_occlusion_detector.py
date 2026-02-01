@@ -28,8 +28,9 @@ class FaceOcclusionDetector:
         # Edge density threshold: High edge density (>0.3) suggests unusual patterns like hands or objects
         # Normal faces have smoother regions, while foreign objects create sharp edges
         self.EDGE_DENSITY_THRESHOLD = 0.3
-        # Mask color threshold: Increased from 0.3 to 0.4 - require stronger color signal
-        self.mask_color_threshold = 0.4  # Increased from 0.3 - more lenient
+        # Mask color threshold: Higher value requires more color evidence before flagging as mask
+        # Increased from 0.3 to 0.4 - requires stronger color signal (more lenient)
+        self.mask_color_threshold = 0.4
         print("[INFO] Face Occlusion Detector initialized (balanced mode)")
     
     def is_mouth_visible(self, face_img, landmarks=None):
