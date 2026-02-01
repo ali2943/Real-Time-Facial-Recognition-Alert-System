@@ -280,8 +280,9 @@ ADAPTIVE_THRESHOLD_PER_USER = True  # Use personalized thresholds per user
 # Users with consistent faces → tighter threshold
 # Users with varying faces → looser threshold
 
-MIN_MATCH_CONFIDENCE = 0.75  # Minimum confidence for positive match (0-1)
+MIN_MATCH_CONFIDENCE = 1.0  # Minimum confidence for positive match (0-1)
 # Even if distance is below threshold, confidence must be high enough
+# - 1.0: 100% confidence (maximum security, only exact matches)
 # - 0.85: Very strict (high security)
 # - 0.75: Balanced (recommended)
 # - 0.65: Lenient (convenience)
