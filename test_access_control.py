@@ -129,7 +129,7 @@ def test_config_values():
         print(f"✓ MIN_FACE_SIZE: {config.MIN_FACE_SIZE}")
         
         # Check updated recognition threshold for improved accuracy
-        assert config.RECOGNITION_THRESHOLD == 1.0, "RECOGNITION_THRESHOLD not 1.0"
+        assert config.RECOGNITION_THRESHOLD == 0.7, "RECOGNITION_THRESHOLD not 0.7"
         print(f"✓ RECOGNITION_THRESHOLD: {config.RECOGNITION_THRESHOLD}")
         
         # Check debug settings
