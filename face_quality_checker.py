@@ -306,3 +306,51 @@ class FaceQualityChecker:
                     score += weight * ratio
         
         return round(score, 2)
+    
+    def check_symmetry(self, face_img):
+        """
+        Check face symmetry
+        Real faces are slightly asymmetric
+        Perfect symmetry = possible fake
+        """
+        h, w = face_img.shape[:2]
+        mid = w // 2
+        
+        left = face_img[:, :mid]
+        right = cv2.flip(face_img[:, mid:], 1)
+        
+        # Make same size
+        min_w = min(left.shape[1], right.shape[1])
+        left = left[:, :min_w]
+        right = right[:, :min_w]
+        
+        # Calculate difference
+        diff = cv2.absdiff(left, right)
+        asymmetry = np.mean(diff)
+        
+        # Real: 20-50, Fake: < 10
+        if asymmetry < 10:
+            return False, f"Too symmetric ({asymmetry:.1f})"
+        return True, f"Natural asymmetry ({asymmetry:.1f})"
+
+    def check_resolution(self, face_img):
+        """Check if face has sufficient resolution"""
+        h, w = face_img.shape[:2]
+        min_dim = min(h, w)
+        
+        if min_dim < 80:
+            return False, f"Resolution too low ({min_dim}px)"
+        elif min_dim < 112:
+            return True, f"Borderline resolution ({min_dim}px)"
+        return True, f"Good resolution ({min_dim}px)"
+
+    def check_noise(self, face_img):
+        """Estimate image noise level"""
+        gray = cv2.cvtColor(face_img, cv2.COLOR_BGR2GRAY)
+        
+        # Estimate noise using Laplacian
+        noise = cv2.Laplacian(gray, cv2.CV_64F).var()
+        
+        if noise > 1000:
+            return False, f"Too noisy ({noise:.0f})"
+        return True, f"Acceptable noise ({noise:.0f})"
