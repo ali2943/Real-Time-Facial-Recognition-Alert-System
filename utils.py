@@ -380,3 +380,26 @@ def display_stats(frame, fps):
         (255, 255, 255),
         2
     )
+
+
+def display_validation_status(frame, validation_results):
+    """
+    Display validation check results on frame
+    
+    Args:
+        frame: Video frame
+        validation_results: Dict of check results {check_name: (passed, message)}
+    """
+    y_offset = 30
+    
+    for check_name, (passed, message) in validation_results.items():
+        color = (0, 255, 0) if passed else (0, 165, 255)  # Green/Orange
+        symbol = "✓" if passed else "!"
+        
+        text = f"{symbol} {check_name}: {message}"
+        cv2.putText(frame, text, (10, y_offset), 
+                   cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 1)
+        y_offset += 25
+    
+    return frame
+

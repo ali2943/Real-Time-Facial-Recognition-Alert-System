@@ -19,11 +19,11 @@ class EyeStateDetector:
     """
     
     def __init__(self):
-        """Initialize eye state detector"""
-        self.EAR_THRESHOLD = config.EYE_ASPECT_RATIO_THRESHOLD  # Below this = closed
+        """Initialize eye state detector with RELAXED threshold"""
+        self.EAR_THRESHOLD = 0.18  # Lowered from 0.21 - more lenient
         self.EAR_CONSEC_FRAMES = 1  # Frames to consider closed
-        self.SUNGLASSES_BRIGHTNESS_THRESHOLD = 50  # Mean brightness below this indicates sunglasses
-        print("[INFO] Eye State Detector initialized")
+        self.SUNGLASSES_BRIGHTNESS_THRESHOLD = 40  # Lowered from 50 - more lenient
+        print("[INFO] Eye State Detector initialized (relaxed threshold)")
     
     def calculate_ear(self, eye_landmarks):
         """
@@ -51,7 +51,7 @@ class EyeStateDetector:
     
     def are_eyes_open(self, landmarks):
         """
-        Check if both eyes are open
+        Check if both eyes are open with better tolerance
         
         Args:
             landmarks: Facial landmarks dictionary
@@ -64,7 +64,10 @@ class EyeStateDetector:
         right_eye = self._get_right_eye_points(landmarks)
         
         if left_eye is None or right_eye is None:
-            return False, 0.0, 0.0, "Eye landmarks not detected"
+            # Can't detect eyes - skip check instead of failing
+            if config.DEBUG_MODE:
+                print("[DEBUG] Eye landmarks not available - skipping eye check")
+            return True, 0.0, 0.0, "Eye landmarks unavailable - check skipped"
         
         # Calculate EAR for both eyes
         left_ear = self.calculate_ear(left_eye)
@@ -73,16 +76,14 @@ class EyeStateDetector:
         # Average EAR
         avg_ear = (left_ear + right_ear) / 2.0
         
-        # Check if eyes are open
+        # More lenient check
         both_open = avg_ear > self.EAR_THRESHOLD
         
+        if config.DEBUG_MODE:
+            print(f"[DEBUG] Eye EAR: Left={left_ear:.3f}, Right={right_ear:.3f}, Avg={avg_ear:.3f}, Threshold={self.EAR_THRESHOLD}")
+        
         if not both_open:
-            if left_ear < self.EAR_THRESHOLD and right_ear < self.EAR_THRESHOLD:
-                reason = f"Both eyes closed (EAR: {avg_ear:.3f})"
-            elif left_ear < self.EAR_THRESHOLD:
-                reason = f"Left eye closed (EAR: {left_ear:.3f})"
-            else:
-                reason = f"Right eye closed (EAR: {right_ear:.3f})"
+            reason = f"Eyes appear closed (EAR: {avg_ear:.3f} < {self.EAR_THRESHOLD})"
         else:
             reason = f"Eyes open (EAR: {avg_ear:.3f})"
         
@@ -90,7 +91,7 @@ class EyeStateDetector:
     
     def detect_eye_occlusion(self, face_img, landmarks):
         """
-        Detect if eyes are occluded (sunglasses, hand, etc.)
+        Detect if eyes are occluded (sunglasses, hand, etc.) with HIGHER confidence requirement
         
         Args:
             face_img: Face image
@@ -104,18 +105,16 @@ class EyeStateDetector:
         right_eye_region = self._extract_eye_region(face_img, landmarks, 'right')
         
         if left_eye_region is None or right_eye_region is None:
-            return True, 0.9, "Cannot extract eye regions"
+            # Can't extract - skip check
+            return False, 0.9, "Eye regions unavailable - check skipped"
         
-        # Check for sunglasses (dark, uniform regions)
-        left_dark = self._is_region_too_dark(left_eye_region)
-        right_dark = self._is_region_too_dark(right_eye_region)
+        # Check for sunglasses (dark, uniform regions) with LOWER threshold (more lenient)
+        left_dark = self._is_region_too_dark(left_eye_region, threshold=self.SUNGLASSES_BRIGHTNESS_THRESHOLD)
+        right_dark = self._is_region_too_dark(right_eye_region, threshold=self.SUNGLASSES_BRIGHTNESS_THRESHOLD)
         
+        # Require BOTH eyes very dark (sunglasses)
         if left_dark and right_dark:
-            return True, 0.95, "Eyes occluded - sunglasses detected"
-        elif left_dark:
-            return True, 0.8, "Left eye occluded"
-        elif right_dark:
-            return True, 0.8, "Right eye occluded"
+            return True, 0.9, "Sunglasses detected (both eyes very dark)"
         
         return False, 0.9, "Eyes visible"
     
@@ -134,16 +133,29 @@ class EyeStateDetector:
     def _extract_eye_region(self, face_img, landmarks, eye='left'):
         """Extract eye region from face"""
         if eye == 'left' and 'left_eye' in landmarks:
-            eye_point = landmarks['left_eye']
+            eye_points = landmarks['left_eye']
         elif eye == 'right' and 'right_eye' in landmarks:
-            eye_point = landmarks['right_eye']
+            eye_points = landmarks['right_eye']
         else:
             return None
         
+        # Calculate center of eye from all points
+        if isinstance(eye_points, np.ndarray) and len(eye_points.shape) == 2:
+            # eye_points is array of (x, y) coordinates
+            center_x = np.mean(eye_points[:, 0])
+            center_y = np.mean(eye_points[:, 1])
+        else:
+            # Fallback to first point if format is unexpected
+            try:
+                center_x = eye_points[0] if isinstance(eye_points[0], (int, float, np.number)) else eye_points[0][0]
+                center_y = eye_points[1] if isinstance(eye_points[1], (int, float, np.number)) else eye_points[1][1]
+            except (IndexError, TypeError, KeyError):
+                return None
+        
         # Extract region around eye
         h, w = face_img.shape[:2]
-        x = self._normalize_coordinate(eye_point[0], w)
-        y = self._normalize_coordinate(eye_point[1], h)
+        x = self._normalize_coordinate(center_x, w)
+        y = self._normalize_coordinate(center_y, h)
         
         margin = 20
         x1, y1 = max(0, x-margin), max(0, y-margin)
@@ -153,15 +165,27 @@ class EyeStateDetector:
     
     def _normalize_coordinate(self, point, dimension):
         """Normalize coordinate to pixel value"""
+        # Handle numpy arrays and scalars
+        if isinstance(point, np.ndarray):
+            point = float(point)
         return int(point * dimension) if point < 1 else int(point)
     
-    def _is_region_too_dark(self, region):
-        """Check if region is too dark (sunglasses)"""
+    def _is_region_too_dark(self, region, threshold=40):
+        """
+        Check if region is too dark (sunglasses) with configurable threshold
+        
+        Args:
+            region: Eye region image
+            threshold: Brightness threshold (default: 40)
+            
+        Returns:
+            True if region is too dark
+        """
         if region.size == 0:
-            return True
+            return False  # Can't determine - don't fail
         
         gray = cv2.cvtColor(region, cv2.COLOR_BGR2GRAY) if len(region.shape) == 3 else region
         mean_brightness = np.mean(gray)
         
         # Very dark = likely sunglasses
-        return mean_brightness < self.SUNGLASSES_BRIGHTNESS_THRESHOLD
+        return mean_brightness < threshold

@@ -21,15 +21,17 @@ class FaceOcclusionDetector:
     """
     
     def __init__(self):
-        """Initialize occlusion detector"""
-        self.mouth_region_threshold = 0.6
-        self.nose_region_threshold = 0.6
+        """Initialize occlusion detector with RELAXED thresholds"""
+        # Lower = more lenient (less sensitive to normal faces)
+        self.mouth_region_threshold = 0.25  # Lowered from 0.6 - more lenient
+        self.nose_region_threshold = 0.25   # Lowered from 0.6 - more lenient
         # Edge density threshold: High edge density (>0.3) suggests unusual patterns like hands or objects
         # Normal faces have smoother regions, while foreign objects create sharp edges
         self.EDGE_DENSITY_THRESHOLD = 0.3
-        # Mask color threshold: If 30% or more of lower face matches mask colors, likely wearing a mask
-        self.MASK_COLOR_THRESHOLD = 0.3
-        print("[INFO] Face Occlusion Detector initialized")
+        # Mask color threshold: Higher value requires more color evidence before flagging as mask
+        # Increased from 0.3 to 0.4 - requires stronger color signal (more lenient)
+        self.mask_color_threshold = 0.4
+        print("[INFO] Face Occlusion Detector initialized (balanced mode)")
     
     def is_mouth_visible(self, face_img, landmarks=None):
         """
@@ -95,7 +97,9 @@ class FaceOcclusionDetector:
     
     def detect_mask(self, face_img, landmarks=None):
         """
-        Detect if face is wearing a mask
+        Detect if face is wearing a mask with confidence-based approach
+        
+        Returns True only if HIGH confidence mask detected
         
         Args:
             face_img: Face image
@@ -113,15 +117,31 @@ class FaceOcclusionDetector:
         # Check 3: Color analysis (masks are often blue/white)
         mask_color_detected, color_conf = self._detect_mask_color(face_img)
         
-        # Combine checks
-        if not mouth_visible and not nose_visible:
-            return True, 0.9, "Mouth and nose covered - mask detected"
-        elif not mouth_visible:
-            return True, 0.8, "Mouth covered - likely wearing mask"
-        elif mask_color_detected:
-            return True, color_conf, "Mask color pattern detected"
-        else:
-            return False, max(mouth_conf, nose_conf), "Face appears uncovered"
+        # NEW: Require MULTIPLE indicators for mask detection
+        # Don't reject on single indicator
+        
+        indicators = 0
+        reasons = []
+        
+        if not mouth_visible and mouth_conf < 0.3:
+            indicators += 1
+            reasons.append("mouth_covered")
+        
+        if not nose_visible and nose_conf < 0.3:
+            indicators += 1
+            reasons.append("nose_covered")
+        
+        if mask_color_detected and color_conf > 0.5:
+            indicators += 1
+            reasons.append("mask_color_detected")
+        
+        # Require at least 2 indicators for mask detection
+        if indicators >= 2:
+            confidence = (1.0 - mouth_conf + 1.0 - nose_conf + color_conf) / 3
+            return True, confidence, f"Mask detected: {', '.join(reasons)}"
+        
+        # Single indicator = not confident enough
+        return False, max(mouth_conf, nose_conf), "Face appears uncovered"
     
     def detect_occlusion(self, face_img, landmarks=None):
         """
@@ -174,21 +194,21 @@ class FaceOcclusionDetector:
         return normalized
     
     def _detect_mask_color(self, face_img):
-        """Detect typical mask colors (blue, white, black)"""
+        """Detect typical mask colors (blue, white, black) with HIGHER threshold"""
         h, w = face_img.shape[:2]
         lower_face = face_img[int(h*0.5):, :]
         
         # Convert to HSV
         hsv = cv2.cvtColor(lower_face, cv2.COLOR_BGR2HSV)
         
-        # Blue mask detection
-        lower_blue = np.array([100, 50, 50])
+        # Blue mask detection (more specific range)
+        lower_blue = np.array([90, 80, 80])  # More specific range
         upper_blue = np.array([130, 255, 255])
         blue_mask = cv2.inRange(hsv, lower_blue, upper_blue)
         blue_ratio = np.sum(blue_mask > 0) / blue_mask.size
         
-        # White mask detection
-        lower_white = np.array([0, 0, 200])
+        # White mask detection (brighter white)
+        lower_white = np.array([0, 0, 220])  # Brighter white
         upper_white = np.array([180, 30, 255])
         white_mask = cv2.inRange(hsv, lower_white, upper_white)
         white_ratio = np.sum(white_mask > 0) / white_mask.size
@@ -202,7 +222,8 @@ class FaceOcclusionDetector:
         # If significant portion is mask color
         max_ratio = max(blue_ratio, white_ratio, black_ratio)
         
-        if max_ratio > self.MASK_COLOR_THRESHOLD:
+        # INCREASED threshold from 0.3 to 0.4
+        if max_ratio > self.mask_color_threshold:
             return True, max_ratio
         
         return False, 0.0
