@@ -20,8 +20,9 @@ class EyeStateDetector:
     
     def __init__(self):
         """Initialize eye state detector"""
-        self.EAR_THRESHOLD = 0.21  # Below this = closed
+        self.EAR_THRESHOLD = config.EYE_ASPECT_RATIO_THRESHOLD  # Below this = closed
         self.EAR_CONSEC_FRAMES = 1  # Frames to consider closed
+        self.SUNGLASSES_BRIGHTNESS_THRESHOLD = 50  # Mean brightness below this indicates sunglasses
         print("[INFO] Eye State Detector initialized")
     
     def calculate_ear(self, eye_landmarks):
@@ -141,14 +142,18 @@ class EyeStateDetector:
         
         # Extract region around eye
         h, w = face_img.shape[:2]
-        x, y = int(eye_point[0] * w) if eye_point[0] < 1 else int(eye_point[0]), \
-               int(eye_point[1] * h) if eye_point[1] < 1 else int(eye_point[1])
+        x = self._normalize_coordinate(eye_point[0], w)
+        y = self._normalize_coordinate(eye_point[1], h)
         
         margin = 20
         x1, y1 = max(0, x-margin), max(0, y-margin)
         x2, y2 = min(w, x+margin), min(h, y+margin)
         
         return face_img[y1:y2, x1:x2]
+    
+    def _normalize_coordinate(self, point, dimension):
+        """Normalize coordinate to pixel value"""
+        return int(point * dimension) if point < 1 else int(point)
     
     def _is_region_too_dark(self, region):
         """Check if region is too dark (sunglasses)"""
@@ -159,4 +164,4 @@ class EyeStateDetector:
         mean_brightness = np.mean(gray)
         
         # Very dark = likely sunglasses
-        return mean_brightness < 50
+        return mean_brightness < self.SUNGLASSES_BRIGHTNESS_THRESHOLD

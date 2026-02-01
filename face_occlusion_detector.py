@@ -24,6 +24,11 @@ class FaceOcclusionDetector:
         """Initialize occlusion detector"""
         self.mouth_region_threshold = 0.6
         self.nose_region_threshold = 0.6
+        # Edge density threshold: High edge density (>0.3) suggests unusual patterns like hands or objects
+        # Normal faces have smoother regions, while foreign objects create sharp edges
+        self.EDGE_DENSITY_THRESHOLD = 0.3
+        # Mask color threshold: If 30% or more of lower face matches mask colors, likely wearing a mask
+        self.MASK_COLOR_THRESHOLD = 0.3
         print("[INFO] Face Occlusion Detector initialized")
     
     def is_mouth_visible(self, face_img, landmarks=None):
@@ -145,7 +150,7 @@ class FaceOcclusionDetector:
         edge_density = np.sum(edges > 0) / edges.size
         
         # Unusual edge patterns suggest occlusion
-        if edge_density > 0.3:  # High edge density
+        if edge_density > self.EDGE_DENSITY_THRESHOLD:
             occluded_regions.append("object_detected")
         
         is_occluded = len(occluded_regions) > 0
@@ -197,7 +202,7 @@ class FaceOcclusionDetector:
         # If significant portion is mask color
         max_ratio = max(blue_ratio, white_ratio, black_ratio)
         
-        if max_ratio > 0.3:  # 30% of lower face is mask color
+        if max_ratio > self.MASK_COLOR_THRESHOLD:
             return True, max_ratio
         
         return False, 0.0
