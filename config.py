@@ -82,12 +82,12 @@ MIN_FACE_SIZE = 60  # Minimum face size in pixels
 # Embedding-based recognition using FaceNet or InsightFace (ArcFace)
 # These settings are CRITICAL for accuracy
 
-RECOGNITION_THRESHOLD = 1.0  # Maximum distance for a match (lower = stricter)
-# Why 1.0 for FaceNet: Euclidean distance in 128-d space
-# - 0.8-1.0: Strict (high security, may reject valid users in poor lighting)
-# - 1.0-1.2: Balanced (recommended for access control)
-# - 1.2-1.4: Loose (convenience over security, higher false accept rate)
-# NOTE: InsightFace uses cosine distance, threshold auto-adjusted to 0.4-0.6
+RECOGNITION_THRESHOLD = 0.7  # Maximum distance for a match (lower = stricter)
+# Why 0.7 for FaceNet: Euclidean distance in 128-d space
+# - 0.6-0.7: Strict (high security, recommended for access control, current setting at upper bound)
+# - 0.8-1.0: Balanced (general use, higher false accept risk)
+# - 1.0-1.2: Loose (convenience over security, significant false accept rate)
+# NOTE: InsightFace uses cosine distance, threshold auto-adjusted to 0.4-0.5
 
 EMBEDDING_SIZE = 128  # Size of face embeddings (128 for FaceNet, 512 for InsightFace)
 # Don't change unless you change the recognition model
@@ -139,7 +139,7 @@ ENABLE_QUALITY_CHECKS = True  # Enable comprehensive quality assessment
 # Low-quality faces create poor embeddings leading to match failures
 # Better to reject low quality and prompt user to adjust than accept and fail later
 
-BLUR_THRESHOLD = 100.0  # Laplacian variance (higher = sharper)
+BLUR_THRESHOLD = 110.0  # Laplacian variance (higher = sharper)
 # Detects motion blur and out-of-focus faces
 # - 100: Standard threshold, rejects obviously blurry faces
 # - 150: Stricter, only accepts very sharp faces
@@ -153,12 +153,12 @@ BRIGHTNESS_RANGE = (40, 220)  # Acceptable brightness range (0-255 scale)
 # - (30, 230): More lenient, for varying environments
 # Face recognition fails in extreme lighting due to lost features
 
-MIN_CONTRAST = 30  # Minimum contrast (standard deviation)
+MIN_CONTRAST = 35  # Minimum contrast (standard deviation)
 # Ensures sufficient variation in pixel intensities
 # Low contrast = flat image = poor feature extraction
 # Typical real face: 40-80, photo under glass: <30
 
-MAX_POSE_ANGLE = 30  # Maximum head rotation in degrees
+MAX_POSE_ANGLE = 25  # Maximum head rotation in degrees
 # Limits head pose variation (yaw, pitch, roll)
 # - 30°: Standard, allows natural head movements
 # - 20°: Stricter, requires near-frontal faces
@@ -170,10 +170,11 @@ MIN_FACE_RESOLUTION = 112  # Minimum face size in pixels
 # Source face must be at least this size to avoid upscaling artifacts
 # 112 is standard for both FaceNet and InsightFace
 
-OVERALL_QUALITY_THRESHOLD = 75  # Overall quality score (0-100)
+OVERALL_QUALITY_THRESHOLD = 80  # Overall quality score (0-100)
 # Weighted combination of all quality checks
+# - 80: Strict, higher quality standards (current setting)
 # - 75: Balanced, accepts good quality faces
-# - 85: Strict, only pristine faces
+# - 85: Very strict, only pristine faces
 # - 65: Lenient, accepts borderline cases
 # See face_quality_checker.py for weight distribution
 
@@ -280,7 +281,7 @@ ADAPTIVE_THRESHOLD_PER_USER = True  # Use personalized thresholds per user
 # Users with consistent faces → tighter threshold
 # Users with varying faces → looser threshold
 
-MIN_MATCH_CONFIDENCE = 1.0  # Minimum confidence for positive match (0-1)
+MIN_MATCH_CONFIDENCE = 0.85  # Minimum confidence for positive match (0-1)
 # Even if distance is below threshold, confidence must be high enough
 # - 1.0: 100% confidence (maximum security, only exact matches)
 # - 0.85: Very strict (high security)
