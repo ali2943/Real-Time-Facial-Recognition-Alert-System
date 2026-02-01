@@ -387,18 +387,32 @@ REQUIRE_MULTI_FRAME_QUALITY = False  # Quality check across multiple frames (not
 MIN_QUALITY_FRAMES = 3  # Consecutive quality frames required
 
 # ============================================
-# FACE VALIDATION SETTINGS
+# FACE VALIDATION SETTINGS (BALANCED)
 # ============================================
 
-# Mask/Occlusion Detection
+# Image Preprocessing
+ENABLE_IMAGE_PREPROCESSING = True  # Apply filters before recognition
+PREPROCESSING_MODE = 'balanced'  # 'light', 'balanced', 'aggressive'
+
+# Mask/Occlusion Detection (More Lenient)
 ENABLE_MASK_DETECTION = True  # Detect and reject masked faces
 ENABLE_OCCLUSION_DETECTION = True  # Detect any face covering
-MASK_DETECTION_CONFIDENCE = 0.7  # Minimum confidence for mask detection
+MASK_DETECTION_CONFIDENCE = 0.75  # Increased from 0.7 (require higher confidence to reject)
+REQUIRE_MULTIPLE_MASK_INDICATORS = True  # Need 2+ signs of mask
 
-# Eye State Validation
+# Eye State Validation (More Lenient)
 ENABLE_EYE_STATE_CHECK = True  # Ensure eyes are open
 REQUIRE_BOTH_EYES_OPEN = True  # Both eyes must be open
-EYE_ASPECT_RATIO_THRESHOLD = 0.21  # Below this = eyes closed
+EYE_ASPECT_RATIO_THRESHOLD = 0.18  # Lowered from 0.21 (more lenient)
+ALLOW_EYE_CHECK_SKIP = True  # Skip if landmarks unavailable
+
+# Occlusion Detection (More Lenient)
+OCCLUSION_CONFIDENCE_THRESHOLD = 0.8  # Higher confidence required
+SUNGLASSES_DARKNESS_THRESHOLD = 40  # Lowered from 50 (more lenient)
+
+# Fallback Behavior
+USE_SOFT_VALIDATION = True  # Don't hard-fail on single check
+VALIDATION_REQUIRED_PASSES = 2  # Out of 3 checks (mask, eyes, occlusion)
 
 # Complete Face Visibility
 REQUIRE_FULL_FACE_VISIBLE = True  # All facial features must be visible

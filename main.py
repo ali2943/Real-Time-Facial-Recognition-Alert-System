@@ -175,6 +175,18 @@ class FacialRecognitionSystem:
         else:
             self.eye_detector = None
         
+        # Image Preprocessor
+        if config.ENABLE_IMAGE_PREPROCESSING:
+            try:
+                from image_preprocessor import ImagePreprocessor
+                self.preprocessor = ImagePreprocessor()
+                print("[INFO] Image preprocessing enabled")
+            except ImportError as e:
+                print(f"[WARNING] Image preprocessor not available: {e}")
+                self.preprocessor = None
+        else:
+            self.preprocessor = None
+        
         # Enhanced database manager
         try:
             from enhanced_database_manager import EnhancedDatabaseManager
@@ -267,6 +279,14 @@ class FacialRecognitionSystem:
                 # Get landmarks if available
                 landmarks = detection.get('keypoints', None)
                 
+                # NEW: Apply preprocessing BEFORE validation
+                if self.preprocessor is not None:
+                    if config.DEBUG_MODE:
+                        print("[DEBUG] Applying image preprocessing...")
+                    
+                    face_original = face.copy()  # Keep original
+                    face = self.preprocessor.preprocess(face)  # Enhanced version
+                
                 # Step 1: Quality Check
                 if self.quality_checker is not None:
                     quality_result = self.quality_checker.check_all(face, landmarks)
@@ -297,64 +317,132 @@ class FacialRecognitionSystem:
                         log_access_event("SPOOF ATTEMPT", reason=reason)
                         return frame
                 
-                # NEW: Step 2a - Mask Detection
+                # NEW: Step 2a - Soft Validation with multiple checks
+                validation_score = 0
+                max_validations = 0
+                validation_failures = []
+                
+                # Check 1: Mask Detection (if enabled)
                 if config.ENABLE_MASK_DETECTION and self.mask_detector is not None:
+                    max_validations += 1
                     has_mask, mask_conf, mask_reason = self.mask_detector.detect_mask(face, landmarks)
                     
-                    if has_mask:
+                    if has_mask and mask_conf > config.MASK_DETECTION_CONFIDENCE:
+                        validation_failures.append(f"Mask: {mask_reason}")
                         if config.DEBUG_MODE:
-                            print(f"[SECURITY] Mask detected: {mask_reason} (confidence: {mask_conf:.2%})")
-                        
-                        cv2.putText(frame, "ACCESS DENIED: Face Covered/Mask Detected", 
-                                   (50, frame.shape[0] // 2), 
-                                   cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0, 255), 2)
-                        cv2.putText(frame, f"Reason: {mask_reason}", 
-                                   (50, frame.shape[0] // 2 + 40), 
-                                   cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 0, 255), 2)
-                        
-                        log_access_event("MASK_DETECTED", reason=mask_reason)
-                        self.last_event_text = f"Last: DENIED - Mask detected"
-                        self.last_access_time = current_time
-                        return frame
+                            print(f"[VALIDATION] Mask check failed: {mask_reason} (confidence: {mask_conf:.2%})")
+                    else:
+                        validation_score += 1
+                        if config.DEBUG_MODE:
+                            print(f"[VALIDATION] Mask check passed (confidence: {mask_conf:.2%})")
                 
-                # NEW: Step 2b - Eye State Check
+                # Check 2: Eye State (if enabled)
                 if config.ENABLE_EYE_STATE_CHECK and self.eye_detector is not None:
+                    max_validations += 1
                     eyes_open, left_ear, right_ear, eye_reason = self.eye_detector.are_eyes_open(landmarks)
                     
                     if not eyes_open:
+                        validation_failures.append(f"Eyes: {eye_reason}")
                         if config.DEBUG_MODE:
-                            print(f"[VALIDATION] Eyes not open: {eye_reason}")
-                        
-                        cv2.putText(frame, "ACCESS DENIED: Eyes Must Be Open", 
-                                   (50, frame.shape[0] // 2), 
-                                   cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0, 255), 2)
-                        cv2.putText(frame, f"{eye_reason}", 
-                                   (50, frame.shape[0] // 2 + 40), 
-                                   cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 0, 255), 2)
-                        
-                        log_access_event("EYES_CLOSED", reason=eye_reason)
-                        self.last_event_text = f"Last: DENIED - Eyes closed"
-                        self.last_access_time = current_time
-                        return frame
+                            print(f"[VALIDATION] Eye check failed: {eye_reason}")
+                    else:
+                        validation_score += 1
+                        if config.DEBUG_MODE:
+                            print(f"[VALIDATION] Eye check passed: {eye_reason}")
                     
-                    # Check for eye occlusion (sunglasses)
+                    # Eye occlusion check
                     eyes_occluded, occl_conf, occl_reason = self.eye_detector.detect_eye_occlusion(face, landmarks)
+                    if eyes_occluded and occl_conf > config.OCCLUSION_CONFIDENCE_THRESHOLD:
+                        validation_failures.append(f"Occlusion: {occl_reason}")
+                    else:
+                        validation_score += 0.5  # Partial credit
+                
+                # Soft validation logic
+                if config.USE_SOFT_VALIDATION:
+                    # Need to pass at least N out of M checks
+                    required_passes = min(config.VALIDATION_REQUIRED_PASSES, max_validations)
                     
-                    if eyes_occluded:
+                    if validation_score < required_passes:
+                        # Failed too many checks
                         if config.DEBUG_MODE:
-                            print(f"[SECURITY] Eyes occluded: {occl_reason}")
+                            print(f"[VALIDATION] Failed: {validation_score}/{max_validations} passed, need {required_passes}")
                         
-                        cv2.putText(frame, "ACCESS DENIED: Eyes Occluded", 
+                        failure_msg = "; ".join(validation_failures[:2])  # Show top 2 failures
+                        
+                        cv2.putText(frame, "ACCESS DENIED: Validation Failed", 
                                    (50, frame.shape[0] // 2), 
-                                   cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0, 255), 2)
-                        cv2.putText(frame, f"{occl_reason}", 
-                                   (50, frame.shape[0] // 2 + 40), 
-                                   cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 0, 255), 2)
+                                   cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 255), 2)
+                        cv2.putText(frame, f"{failure_msg}", 
+                                   (50, frame.shape[0] // 2 + 35), 
+                                   cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 1)
                         
-                        log_access_event("EYES_OCCLUDED", reason=occl_reason)
-                        self.last_event_text = f"Last: DENIED - Eyes occluded"
+                        log_access_event("VALIDATION_FAILED", reason=failure_msg)
+                        self.last_event_text = f"Last: DENIED - Validation failed"
                         self.last_access_time = current_time
                         return frame
+                    else:
+                        if config.DEBUG_MODE:
+                            print(f"[VALIDATION] Passed: {validation_score}/{max_validations} checks")
+                else:
+                    # Old hard-fail logic (only if soft validation disabled)
+                    # Check 1: Mask Detection
+                    if config.ENABLE_MASK_DETECTION and self.mask_detector is not None:
+                        has_mask, mask_conf, mask_reason = self.mask_detector.detect_mask(face, landmarks)
+                        
+                        if has_mask:
+                            if config.DEBUG_MODE:
+                                print(f"[SECURITY] Mask detected: {mask_reason} (confidence: {mask_conf:.2%})")
+                            
+                            cv2.putText(frame, "ACCESS DENIED: Face Covered/Mask Detected", 
+                                       (50, frame.shape[0] // 2), 
+                                       cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0, 255), 2)
+                            cv2.putText(frame, f"Reason: {mask_reason}", 
+                                       (50, frame.shape[0] // 2 + 40), 
+                                       cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 0, 255), 2)
+                            
+                            log_access_event("MASK_DETECTED", reason=mask_reason)
+                            self.last_event_text = f"Last: DENIED - Mask detected"
+                            self.last_access_time = current_time
+                            return frame
+                    
+                    # Check 2: Eye State
+                    if config.ENABLE_EYE_STATE_CHECK and self.eye_detector is not None:
+                        eyes_open, left_ear, right_ear, eye_reason = self.eye_detector.are_eyes_open(landmarks)
+                        
+                        if not eyes_open:
+                            if config.DEBUG_MODE:
+                                print(f"[VALIDATION] Eyes not open: {eye_reason}")
+                            
+                            cv2.putText(frame, "ACCESS DENIED: Eyes Must Be Open", 
+                                       (50, frame.shape[0] // 2), 
+                                       cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0, 255), 2)
+                            cv2.putText(frame, f"{eye_reason}", 
+                                       (50, frame.shape[0] // 2 + 40), 
+                                       cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 0, 255), 2)
+                            
+                            log_access_event("EYES_CLOSED", reason=eye_reason)
+                            self.last_event_text = f"Last: DENIED - Eyes closed"
+                            self.last_access_time = current_time
+                            return frame
+                        
+                        # Check for eye occlusion (sunglasses)
+                        eyes_occluded, occl_conf, occl_reason = self.eye_detector.detect_eye_occlusion(face, landmarks)
+                        
+                        if eyes_occluded:
+                            if config.DEBUG_MODE:
+                                print(f"[SECURITY] Eyes occluded: {occl_reason}")
+                            
+                            cv2.putText(frame, "ACCESS DENIED: Eyes Occluded", 
+                                       (50, frame.shape[0] // 2), 
+                                       cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0, 255), 2)
+                            cv2.putText(frame, f"{occl_reason}", 
+                                       (50, frame.shape[0] // 2 + 40), 
+                                       cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 0, 255), 2)
+                            
+                            log_access_event("EYES_OCCLUDED", reason=occl_reason)
+                            self.last_event_text = f"Last: DENIED - Eyes occluded"
+                            self.last_access_time = current_time
+                            return frame
                 
                 # Step 3: Face Alignment
                 if self.face_aligner is not None and landmarks:
@@ -362,8 +450,9 @@ class FacialRecognitionSystem:
                 
                 # Step 4: Generate Embedding
                 if config.DEBUG_MODE:
-                    print(f"[DEBUG] Face detected, generating embedding...")
+                    print(f"[DEBUG] Generating embedding from preprocessed face...")
                 
+                # Use preprocessed face for embedding
                 # For InsightFace, try to use face_object for better performance
                 if hasattr(self.recognizer, '__class__') and 'InsightFace' in self.recognizer.__class__.__name__:
                     face_object = detection.get('face_object', None)
