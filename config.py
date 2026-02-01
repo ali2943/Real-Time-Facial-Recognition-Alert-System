@@ -280,8 +280,9 @@ ADAPTIVE_THRESHOLD_PER_USER = True  # Use personalized thresholds per user
 # Users with consistent faces → tighter threshold
 # Users with varying faces → looser threshold
 
-MIN_MATCH_CONFIDENCE = 0.75  # Minimum confidence for positive match (0-1)
+MIN_MATCH_CONFIDENCE = 1.0  # Minimum confidence for positive match (0-1)
 # Even if distance is below threshold, confidence must be high enough
+# - 1.0: 100% confidence (maximum security, only exact matches)
 # - 0.85: Very strict (high security)
 # - 0.75: Balanced (recommended)
 # - 0.65: Lenient (convenience)
@@ -329,6 +330,7 @@ FACENET_MODEL_PATH = None  # Will use Keras FaceNet implementation
 # Security Door Access Control Settings
 ACCESS_GRANTED_DISPLAY_TIME = 2  # Seconds to show access granted message
 ACCESS_DENIED_DISPLAY_TIME = 3  # Seconds to show access denied message
+ACCESS_RESULT_DISPLAY_TIME = 3  # Seconds to show verification result in on-click mode
 ACCESS_COOLDOWN = 3  # Seconds between access attempts to prevent spam
 ENABLE_AUDIO_FEEDBACK = False  # Play sounds for granted/denied (not implemented yet)
 LOG_FILE_PATH = "access_log.txt"  # Path to access log file
