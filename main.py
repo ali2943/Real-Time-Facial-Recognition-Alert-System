@@ -229,11 +229,11 @@ class FacialRecognitionSystem:
                 
                 # Step 6: Confidence Check - MUST BE 100% (1.0)
                 if matched_name and confidence >= config.MIN_MATCH_CONFIDENCE:
-                    # ACCESS GRANTED - Authorized user with 100% confidence
+                    # ACCESS GRANTED - Authorized user with required confidence
                     print(f"[SUCCESS] Access Granted: {matched_name} (distance: {distance:.4f}, confidence: {confidence:.2%})")
                     self.last_access_person = matched_name
                     self.last_access_time = current_time
-                    self.last_event_text = f"Last: GRANTED - {matched_name} (100% confidence)"
+                    self.last_event_text = f"Last: GRANTED - {matched_name} ({confidence:.0%} confidence)"
                     
                     # Log access event
                     log_access_event("ACCESS GRANTED", person_name=matched_name)
@@ -241,9 +241,9 @@ class FacialRecognitionSystem:
                     # Display granted message
                     display_access_granted(frame, matched_name)
                 else:
-                    # ACCESS DENIED - Not 100% confidence match
+                    # ACCESS DENIED - Not meeting confidence requirement
                     if matched_name:
-                        print(f"[FAILURE] Access Denied: Confidence too low ({confidence:.2%} < 100%)")
+                        print(f"[FAILURE] Access Denied: Confidence too low ({confidence:.2%} < {config.MIN_MATCH_CONFIDENCE:.0%})")
                         self.last_event_text = f"Last: DENIED - Low confidence ({confidence:.2%})"
                     else:
                         if distance is not None and distance != float('inf'):
@@ -408,7 +408,7 @@ class FacialRecognitionSystem:
                                 # Display the result for a few seconds
                                 display_system_status(processed_frame, fps, uptime, self.last_event_text)
                                 cv2.imshow('Security Door Access Control System', processed_frame)
-                                cv2.waitKey(3000)  # Show result for 3 seconds
+                                cv2.waitKey(config.ACCESS_RESULT_DISPLAY_TIME * 1000)  # Show result for configured time
                                 
                                 # Reset last event text after showing result
                                 self.last_event_text = ""

@@ -330,6 +330,7 @@ FACENET_MODEL_PATH = None  # Will use Keras FaceNet implementation
 # Security Door Access Control Settings
 ACCESS_GRANTED_DISPLAY_TIME = 2  # Seconds to show access granted message
 ACCESS_DENIED_DISPLAY_TIME = 3  # Seconds to show access denied message
+ACCESS_RESULT_DISPLAY_TIME = 3  # Seconds to show verification result in on-click mode
 ACCESS_COOLDOWN = 3  # Seconds between access attempts to prevent spam
 ENABLE_AUDIO_FEEDBACK = False  # Play sounds for granted/denied (not implemented yet)
 LOG_FILE_PATH = "access_log.txt"  # Path to access log file
