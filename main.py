@@ -153,6 +153,28 @@ class FacialRecognitionSystem:
         else:
             self.liveness_detector = None
         
+        # Mask/Occlusion Detection
+        if config.ENABLE_MASK_DETECTION or config.ENABLE_OCCLUSION_DETECTION:
+            try:
+                from face_occlusion_detector import FaceOcclusionDetector
+                self.mask_detector = FaceOcclusionDetector()
+            except ImportError as e:
+                print(f"[WARNING] Mask detector not available: {e}")
+                self.mask_detector = None
+        else:
+            self.mask_detector = None
+        
+        # Eye State Detection
+        if config.ENABLE_EYE_STATE_CHECK:
+            try:
+                from eye_state_detector import EyeStateDetector
+                self.eye_detector = EyeStateDetector()
+            except ImportError as e:
+                print(f"[WARNING] Eye detector not available: {e}")
+                self.eye_detector = None
+        else:
+            self.eye_detector = None
+        
         # Enhanced database manager
         try:
             from enhanced_database_manager import EnhancedDatabaseManager
@@ -273,6 +295,65 @@ class FacialRecognitionSystem:
                         print(f"[SECURITY] Liveness check failed: {reason}")
                         self._display_spoof_warning(frame)
                         log_access_event("SPOOF ATTEMPT", reason=reason)
+                        return frame
+                
+                # NEW: Step 2a - Mask Detection
+                if config.ENABLE_MASK_DETECTION and self.mask_detector is not None:
+                    has_mask, mask_conf, mask_reason = self.mask_detector.detect_mask(face, landmarks)
+                    
+                    if has_mask:
+                        if config.DEBUG_MODE:
+                            print(f"[SECURITY] Mask detected: {mask_reason} (confidence: {mask_conf:.2%})")
+                        
+                        cv2.putText(frame, "ACCESS DENIED: Face Covered/Mask Detected", 
+                                   (50, frame.shape[0] // 2), 
+                                   cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0, 255), 2)
+                        cv2.putText(frame, f"Reason: {mask_reason}", 
+                                   (50, frame.shape[0] // 2 + 40), 
+                                   cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 0, 255), 2)
+                        
+                        log_access_event("MASK_DETECTED", reason=mask_reason)
+                        self.last_event_text = f"Last: DENIED - Mask detected"
+                        self.last_access_time = current_time
+                        return frame
+                
+                # NEW: Step 2b - Eye State Check
+                if config.ENABLE_EYE_STATE_CHECK and self.eye_detector is not None:
+                    eyes_open, left_ear, right_ear, eye_reason = self.eye_detector.are_eyes_open(landmarks)
+                    
+                    if not eyes_open:
+                        if config.DEBUG_MODE:
+                            print(f"[VALIDATION] Eyes not open: {eye_reason}")
+                        
+                        cv2.putText(frame, "ACCESS DENIED: Eyes Must Be Open", 
+                                   (50, frame.shape[0] // 2), 
+                                   cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0, 255), 2)
+                        cv2.putText(frame, f"{eye_reason}", 
+                                   (50, frame.shape[0] // 2 + 40), 
+                                   cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 0, 255), 2)
+                        
+                        log_access_event("EYES_CLOSED", reason=eye_reason)
+                        self.last_event_text = f"Last: DENIED - Eyes closed"
+                        self.last_access_time = current_time
+                        return frame
+                    
+                    # Check for eye occlusion (sunglasses)
+                    eyes_occluded, occl_conf, occl_reason = self.eye_detector.detect_eye_occlusion(face, landmarks)
+                    
+                    if eyes_occluded:
+                        if config.DEBUG_MODE:
+                            print(f"[SECURITY] Eyes occluded: {occl_reason}")
+                        
+                        cv2.putText(frame, "ACCESS DENIED: Eyes Occluded", 
+                                   (50, frame.shape[0] // 2), 
+                                   cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0, 255), 2)
+                        cv2.putText(frame, f"{occl_reason}", 
+                                   (50, frame.shape[0] // 2 + 40), 
+                                   cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 0, 255), 2)
+                        
+                        log_access_event("EYES_OCCLUDED", reason=occl_reason)
+                        self.last_event_text = f"Last: DENIED - Eyes occluded"
+                        self.last_access_time = current_time
                         return frame
                 
                 # Step 3: Face Alignment
