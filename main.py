@@ -7,6 +7,7 @@ Configured as an on-demand security door access control system
 import cv2
 import time
 import argparse
+from collections import Counter
 from face_detector import FaceDetector
 from face_recognition_model import FaceRecognitionModel
 from database_manager import DatabaseManager
@@ -17,6 +18,74 @@ from utils import (
 )
 import config
 import numpy as np
+
+
+class FrameBuffer:
+    """
+    Store recent detections for temporal consistency checking
+    
+    Maintains a sliding window of recent face recognition results
+    to ensure consistent identification across multiple frames.
+    """
+    
+    def __init__(self, buffer_size=5):
+        """
+        Initialize frame buffer
+        
+        Args:
+            buffer_size: Number of recent detections to store
+        """
+        self.buffer = []
+        self.buffer_size = buffer_size
+    
+    def add_detection(self, name, confidence):
+        """
+        Add a detection result to the buffer
+        
+        Args:
+            name: Detected person's name (or None for unknown)
+            confidence: Confidence score (0.0 to 1.0)
+        """
+        self.buffer.append((name, confidence))
+        if len(self.buffer) > self.buffer_size:
+            self.buffer.pop(0)
+    
+    def get_consensus(self):
+        """
+        Get consensus from recent frames using majority voting
+        
+        Returns:
+            Tuple of (consensus_name, average_confidence)
+            Returns (None, 0.0) if no consensus reached
+        """
+        if len(self.buffer) < 3:
+            # Need at least 3 frames for consensus
+            return None, 0.0
+        
+        # Count occurrences of each name
+        names = [n for n, c in self.buffer]
+        name_counts = Counter(names)
+        
+        # Get most common name
+        most_common_name, count = name_counts.most_common(1)[0]
+        
+        # Calculate average confidence for that name
+        confidences = [c for n, c in self.buffer if n == most_common_name]
+        avg_confidence = np.mean(confidences)
+        
+        # Require at least MIN_CONSENSUS_RATIO consistency
+        if count / len(self.buffer) >= config.MIN_CONSENSUS_RATIO:
+            return most_common_name, avg_confidence
+        
+        return None, 0.0
+    
+    def clear(self):
+        """Clear the buffer"""
+        self.buffer = []
+    
+    def is_empty(self):
+        """Check if buffer is empty"""
+        return len(self.buffer) == 0
 
 
 class FacialRecognitionSystem:
@@ -102,6 +171,12 @@ class FacialRecognitionSystem:
         
         # Tracking for unknown faces
         self.unknown_face_counter = 0
+        
+        # Frame buffer for temporal consistency (if enabled)
+        self.frame_buffer = None
+        if config.USE_TEMPORAL_CONSISTENCY:
+            self.frame_buffer = FrameBuffer(buffer_size=config.TEMPORAL_BUFFER_SIZE)
+            print(f"[INFO] Temporal consistency enabled (buffer size: {config.TEMPORAL_BUFFER_SIZE})")
         
         # Last access tracking
         self.last_access_person = None

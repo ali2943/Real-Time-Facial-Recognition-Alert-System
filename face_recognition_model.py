@@ -103,6 +103,17 @@ class FaceRecognitionModel:
         try:
             self.model = FaceNet()
             self.input_size = (160, 160)  # FaceNet expects 160x160 input
+            
+            # Initialize preprocessor if enabled
+            self.preprocessor = None
+            if config.USE_ADVANCED_PREPROCESSING:
+                try:
+                    from face_preprocessor import FacePreprocessor
+                    self.preprocessor = FacePreprocessor()
+                    print(f"[INFO] Advanced preprocessing enabled (mode: {config.PREPROCESSING_MODE})")
+                except ImportError:
+                    print("[WARNING] Face preprocessor not available")
+            
             print("[INFO] FaceNet model loaded successfully")
         except Exception as e:
             print(f"[ERROR] Failed to load FaceNet model: {e}")
@@ -187,15 +198,17 @@ class FaceRecognitionModel:
             embedding: 128-dimensional numpy array (float32)
                       Shape: (128,)
                       Range: typically [-5, 5] but unbounded
-                      L2 norm: typically 1-10 (not normalized)
+                      L2 norm: 1.0 if normalized, otherwise 1-10
         
         PROCESS FLOW:
         ------------
         1. Convert BGR (OpenCV) → RGB (model requirement)
-        2. Resize to 160x160 and normalize
-        3. Pass through neural network
-        4. Extract 128-d embedding from final layer
-        5. Return embedding vector
+        2. Apply advanced preprocessing (if enabled)
+        3. Resize to 160x160 and normalize
+        4. Pass through neural network
+        5. Extract 128-d embedding from final layer
+        6. Apply L2 normalization (if enabled)
+        7. Return embedding vector
         
         EMBEDDING PROPERTIES:
         -------------------
@@ -261,6 +274,14 @@ class FaceRecognitionModel:
         # This conversion is critical - BGR input would give wrong results
         face_rgb = cv2.cvtColor(face_img, cv2.COLOR_BGR2RGB)
         
+        # Step 1.5: Apply advanced preprocessing if enabled
+        if self.preprocessor is not None:
+            if config.PREPROCESSING_MODE == 'full':
+                face_rgb = self.preprocessor.preprocess(face_rgb)
+            elif config.PREPROCESSING_MODE == 'light':
+                face_rgb = self.preprocessor.preprocess_light(face_rgb)
+            # 'none' mode skips preprocessing
+        
         if config.DEBUG_MODE:
             print(f"[DEBUG] Generating embedding for face: shape={face_rgb.shape}")
         
@@ -276,6 +297,13 @@ class FaceRecognitionModel:
         # Step 4: Extract single embedding from batch
         # embedding[0] converts (1, 128) → (128,)
         embedding_vector = embedding[0]
+        
+        # Step 5: Apply L2 normalization if enabled
+        # This makes embeddings unit vectors, improving cosine similarity
+        if config.NORMALIZE_EMBEDDINGS:
+            norm = np.linalg.norm(embedding_vector)
+            if norm > 0:
+                embedding_vector = embedding_vector / norm
         
         if config.DEBUG_MODE:
             print(f"[DEBUG] Embedding generated: shape={embedding_vector.shape}, "

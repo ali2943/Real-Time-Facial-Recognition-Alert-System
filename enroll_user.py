@@ -6,6 +6,7 @@ Captures face images and stores embeddings in the database
 import os
 import cv2
 import argparse
+import numpy as np
 from face_detector import FaceDetector
 from face_recognition_model import FaceRecognitionModel
 from database_manager import DatabaseManager
@@ -66,20 +67,21 @@ def enroll_user(name, num_samples=5):
     except ImportError:
         db_manager = DatabaseManager()
     
-    # Pose instructions for varied samples
-    if config.CAPTURE_POSE_VARIATIONS and num_samples >= 10:
-        poses = [
-            "Look straight at camera",
-            "Turn head slightly left",
-            "Turn head slightly right",
-            "Tilt chin up a bit",
-            "Tilt chin down a bit",
-            "Neutral expression",
-            "Slight smile",
-            "Look straight (2)",
-            "Look straight (3)",
-            "Look straight (4)"
-        ]
+    # Multi-angle pose instructions
+    if config.CAPTURE_POSE_VARIATIONS and num_samples >= len(config.ENROLLMENT_ANGLES):
+        # Use configured angles
+        poses = []
+        for angle in config.ENROLLMENT_ANGLES:
+            if angle == 0:
+                poses.append("Look straight at camera (front)")
+            elif angle < 0:
+                poses.append(f"Turn head slightly left (about {abs(angle)}°)")
+            else:
+                poses.append(f"Turn head slightly right (about {angle}°)")
+        
+        # Fill remaining with front-facing
+        while len(poses) < num_samples:
+            poses.append(f"Look straight at camera ({len(poses) - len(config.ENROLLMENT_ANGLES) + 1})")
     else:
         poses = ["Look at camera"] * num_samples
     
@@ -96,6 +98,7 @@ def enroll_user(name, num_samples=5):
     
     samples_captured = 0
     current_pose_index = 0
+    captured_embeddings = []  # Store for variance checking
     
     while samples_captured < num_samples:
         ret, frame = cap.read()
@@ -115,9 +118,9 @@ def enroll_user(name, num_samples=5):
         
         # Display current pose instruction
         if config.CAPTURE_POSE_VARIATIONS:
-            pose_text = f"Pose: {poses[current_pose_index]}"
+            pose_text = f"Pose {samples_captured + 1}/{num_samples}: {poses[current_pose_index]}"
             cv2.putText(frame, pose_text, (10, 100), cv2.FONT_HERSHEY_SIMPLEX, 
-                       0.8, (255, 255, 0), 2)
+                       0.7, (255, 255, 0), 2)
         
         # Display quality feedback if available
         if quality_checker and len(detections) == 1:
@@ -198,6 +201,19 @@ def enroll_user(name, num_samples=5):
                     else:
                         embedding = recognizer.get_embedding(face)
                     
+                    # Store embedding for variance checking
+                    captured_embeddings.append(embedding)
+                    
+                    # Check intra-user variance if we have multiple samples
+                    if len(captured_embeddings) >= 2:
+                        variance = calculate_embedding_variance(captured_embeddings)
+                        print(f"[INFO] Current embedding variance: {variance:.4f}")
+                        
+                        if len(captured_embeddings) >= config.ENROLLMENT_MIN_SAMPLES:
+                            if variance > config.ENROLLMENT_MAX_VARIANCE:
+                                print(f"[WARNING] High variance detected ({variance:.4f} > {config.ENROLLMENT_MAX_VARIANCE})")
+                                print("[WARNING] Embeddings are inconsistent. Consider re-enrollment.")
+                    
                     # Add to database
                     db_manager.add_user(name, embedding)
                     
@@ -220,9 +236,46 @@ def enroll_user(name, num_samples=5):
     cv2.destroyAllWindows()
     
     if samples_captured == num_samples:
-        print(f"\n[SUCCESS] User '{name}' enrolled successfully with {samples_captured} samples!")
+        # Final variance check
+        if len(captured_embeddings) >= 2:
+            final_variance = calculate_embedding_variance(captured_embeddings)
+            print(f"\n[INFO] Final embedding variance: {final_variance:.4f}")
+            
+            if final_variance <= config.ENROLLMENT_MAX_VARIANCE:
+                print(f"[SUCCESS] User '{name}' enrolled successfully with {samples_captured} high-quality samples!")
+                print(f"[SUCCESS] Embedding consistency: EXCELLENT (variance: {final_variance:.4f})")
+            else:
+                print(f"[SUCCESS] User '{name}' enrolled with {samples_captured} samples")
+                print(f"[WARNING] Embedding variance is high ({final_variance:.4f} > {config.ENROLLMENT_MAX_VARIANCE})")
+                print("[WARNING] You may experience recognition issues. Consider re-enrolling.")
+        else:
+            print(f"\n[SUCCESS] User '{name}' enrolled successfully with {samples_captured} samples!")
     else:
         print(f"\n[INFO] Enrolled user '{name}' with {samples_captured} samples")
+
+
+def calculate_embedding_variance(embeddings):
+    """
+    Calculate variance among embeddings
+    
+    Args:
+        embeddings: List of embedding vectors
+        
+    Returns:
+        Average pairwise distance (variance metric)
+    """
+    if len(embeddings) < 2:
+        return 0.0
+    
+    embeddings_array = np.array(embeddings)
+    distances = []
+    
+    for i in range(len(embeddings_array)):
+        for j in range(i + 1, len(embeddings_array)):
+            dist = np.linalg.norm(embeddings_array[i] - embeddings_array[j])
+            distances.append(dist)
+    
+    return np.mean(distances)
 
 
 def main():

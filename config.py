@@ -299,6 +299,9 @@ MAX_MOVEMENT_THRESHOLD = 30.0  # Maximum pixels of natural head movement
 ENROLLMENT_SAMPLES = 10  # Increased from 5 for better coverage
 ENROLLMENT_QUALITY_THRESHOLD = 80  # Higher quality required for enrollment
 CAPTURE_POSE_VARIATIONS = True  # Guide user through different poses
+ENROLLMENT_ANGLES = [-15, -10, 0, 10, 15]  # Pose variations in degrees (left to right progression)
+ENROLLMENT_MIN_SAMPLES = 5  # Minimum samples required for enrollment
+ENROLLMENT_MAX_VARIANCE = 0.3  # Maximum allowed variance between embeddings
 
 # Camera Settings
 CAMERA_INDEX = 0  # Default camera (0 = primary webcam)
@@ -348,3 +351,28 @@ ACCESS_TEXT_THICKNESS = 3  # Thicker text for access messages
 ACCESS_GRANTED_COLOR = (0, 255, 0)  # Green
 ACCESS_DENIED_COLOR = (0, 0, 255)  # Red
 SYSTEM_READY_COLOR = (255, 255, 255)  # White
+
+# ============================================
+# ADVANCED PREPROCESSING SETTINGS
+# ============================================
+USE_ADVANCED_PREPROCESSING = True  # Enable CLAHE, gamma correction, bilateral filtering
+PREPROCESSING_MODE = 'full'  # Options: 'full', 'light', 'none'
+
+# ============================================
+# TEMPORAL CONSISTENCY SETTINGS
+# ============================================
+USE_TEMPORAL_CONSISTENCY = False  # Enable multi-frame verification (not suitable for on-click mode)
+TEMPORAL_BUFFER_SIZE = 5  # Number of frames to consider
+MIN_CONSENSUS_RATIO = 0.6  # Minimum 60% of frames must agree
+
+# ============================================
+# EMBEDDING NORMALIZATION SETTINGS
+# ============================================
+NORMALIZE_EMBEDDINGS = True  # Enable L2 normalization of embeddings
+USE_EMBEDDING_WHITENING = False  # Advanced whitening (requires training data)
+
+# ============================================
+# QUALITY GATING SETTINGS
+# ============================================
+REQUIRE_MULTI_FRAME_QUALITY = False  # Quality check across multiple frames (not for on-click)
+MIN_QUALITY_FRAMES = 3  # Consecutive quality frames required
