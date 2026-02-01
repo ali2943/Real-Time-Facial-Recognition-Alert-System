@@ -82,9 +82,12 @@ MIN_FACE_SIZE = 60  # Minimum face size in pixels
 # Embedding-based recognition using FaceNet or InsightFace (ArcFace)
 # These settings are CRITICAL for accuracy
 
-RECOGNITION_THRESHOLD = 0.7  # Maximum distance for a match (lower = stricter)
+RECOGNITION_THRESHOLD = 0.7  # Stricter matching (lower = stricter)
+# For FaceNet: 0.7 is strict, only strong matches accepted
+# Values 0.8-1.0 allow weak matches → security risk!
+# Lower threshold = fewer false accepts = better security
 # Why 0.7 for FaceNet: Euclidean distance in 128-d space
-# - 0.6-0.7: Strict (high security, recommended for access control, current setting at upper bound)
+# - 0.6-0.7: Strict (high security, recommended for access control)
 # - 0.8-1.0: Balanced (general use, higher false accept risk)
 # - 1.0-1.2: Loose (convenience over security, significant false accept rate)
 # NOTE: InsightFace uses cosine distance, threshold auto-adjusted to 0.4-0.5
@@ -284,9 +287,15 @@ ADAPTIVE_THRESHOLD_PER_USER = True  # Use personalized thresholds per user
 MIN_MATCH_CONFIDENCE = 0.85  # Minimum confidence for positive match (0-1)
 # Even if distance is below threshold, confidence must be high enough
 # - 1.0: 100% confidence (maximum security, only exact matches)
-# - 0.85: Very strict (high security)
-# - 0.75: Balanced (recommended)
+# - 0.85: Very strict (high security, realistic and secure)
+# - 0.75: Balanced (recommended for general use)
 # - 0.65: Lenient (convenience)
+# 85% provides high security while remaining usable
+# Adjust to 0.90 for higher security or 0.80 for more leniency
+
+# Force strict validation
+REJECT_UNKNOWN_FACES = True  # Always reject if not in database (cannot be disabled)
+REQUIRE_DATABASE_MATCH = True  # Must match someone in database
 
 # Liveness Detection Movement Thresholds
 MAX_MOVEMENT_THRESHOLD = 30.0  # Maximum pixels of natural head movement

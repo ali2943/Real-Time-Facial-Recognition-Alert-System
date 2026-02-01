@@ -162,31 +162,64 @@ def display_system_ready(frame):
     )
 
 
-def log_access_event(event_type, person_name=None, photo_filename=None):
+def log_access_event(name, status="ATTEMPTED", confidence=None, distance=None, reason=None, photo_filename=None, person_name=None):
     """
-    Log access event to file
+    Log access attempts with full details
     
     Args:
-        event_type: "ACCESS GRANTED" or "ACCESS DENIED"
-        person_name: Name of person (if known)
-        photo_filename: Filename of saved photo (for denied access)
+        name: Person name or event type (e.g., "UNKNOWN", "SPOOF ATTEMPT")
+        status: Status of the event (e.g., "GRANTED", "DENIED - LOW CONFIDENCE")
+        confidence: Optional confidence score (0.0 to 1.0)
+        distance: Optional embedding distance
+        reason: Optional reason for the event
+        photo_filename: Optional filename of saved photo
+        person_name: Optional person name (for backward compatibility)
     """
     try:
         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         
-        if person_name:
-            log_entry = f"[{timestamp}] {event_type} - {person_name}\n"
+        # Handle backward compatibility - old signature: log_access_event(event_type, person_name=None, photo_filename=None)
+        # Detect old usage pattern
+        if person_name is not None and status == "ATTEMPTED":
+            # Old usage: event_type in name, person_name provided
+            event_type = name
+            if person_name:
+                log_entry = f"[{timestamp}] {event_type} - {person_name}"
+            else:
+                log_entry = f"[{timestamp}] {event_type} - Unknown"
+                if photo_filename:
+                    log_entry += f" (Photo: {photo_filename})"
         else:
-            log_entry = f"[{timestamp}] {event_type} - Unknown"
+            # New usage: name is user name or "UNKNOWN", status is the actual status
+            log_entry = f"[{timestamp}] {status} - User: {name or 'UNKNOWN'}"
+            
+            if confidence is not None:
+                log_entry += f", Confidence: {confidence:.2%}"
+            
+            if distance is not None:
+                if distance == float('inf'):
+                    log_entry += f", Distance: inf"
+                else:
+                    log_entry += f", Distance: {distance:.4f}"
+            
+            if reason:
+                log_entry += f", Reason: {reason}"
+            
             if photo_filename:
-                log_entry += f" (Photo: {photo_filename})"
-            log_entry += "\n"
+                log_entry += f", Photo: {photo_filename}"
         
+        log_entry += "\n"
+        
+        # Print to console if debug mode
+        if config.DEBUG_MODE:
+            print(f"[LOG] {log_entry.strip()}")
+        
+        # Write to file
         with open(config.LOG_FILE_PATH, 'a') as f:
             f.write(log_entry)
     
     except Exception as e:
-        print(f"[ERROR] Failed to log access event: {e}")
+        print(f"[ERROR] Failed to write log: {e}")
 
 
 def display_system_status(frame, fps, uptime, last_event):

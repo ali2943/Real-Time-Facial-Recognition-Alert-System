@@ -106,8 +106,13 @@ class DatabaseManager:
             face_recognizer: FaceRecognitionModel instance
             
         Returns:
-            Tuple of (user_name, distance) or (None, None) if no match
+            Tuple of (user_name, distance) or (None, distance) if no match
         """
+        # Check if database is empty
+        if len(self.embeddings_db) == 0:
+            print("[ERROR] Database is empty! No users to match against.")
+            return None, float('inf')
+        
         best_match = None
         best_distance = float('inf')
         
@@ -119,9 +124,13 @@ class DatabaseManager:
                     best_distance = distance
                     best_match = name
         
-        # Check if best match is within threshold
+        # CRITICAL: Only return match if within threshold
         if best_distance < config.RECOGNITION_THRESHOLD:
+            if config.DEBUG_MODE:
+                print(f"[DEBUG] Match found: {best_match}, distance: {best_distance:.4f} < threshold: {config.RECOGNITION_THRESHOLD}")
             return best_match, best_distance
         else:
-            # Return None for name but keep distance for debugging
+            # Distance too large - unknown person
+            if config.DEBUG_MODE:
+                print(f"[DEBUG] No match: Best distance {best_distance:.4f} >= threshold {config.RECOGNITION_THRESHOLD}")
             return None, best_distance
