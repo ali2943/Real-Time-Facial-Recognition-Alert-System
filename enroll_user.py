@@ -6,6 +6,7 @@ Captures face images and stores embeddings in the database
 import os
 import cv2
 import argparse
+import numpy as np
 from face_detector import FaceDetector
 from face_recognition_model import FaceRecognitionModel
 from database_manager import DatabaseManager
