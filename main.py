@@ -42,8 +42,8 @@ class FacialRecognitionSystem:
                 
                 # Adjust threshold for InsightFace (uses cosine distance, different scale)
                 # Store in instance variable instead of modifying global config
-                if self.recognition_threshold > 0.8:
-                    self.recognition_threshold = 0.6
+                if self.recognition_threshold > 0.7:
+                    self.recognition_threshold = 0.5  # Stricter for InsightFace
                     print(f"[INFO] Adjusted threshold for InsightFace: {self.recognition_threshold}")
             except (ImportError, RuntimeError) as e:
                 print(f"[WARNING] InsightFace not available ({e}), using FaceNet")
