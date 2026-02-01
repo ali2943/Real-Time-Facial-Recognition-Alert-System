@@ -385,3 +385,21 @@ USE_EMBEDDING_WHITENING = False  # Advanced whitening (requires training data)
 # ============================================
 REQUIRE_MULTI_FRAME_QUALITY = False  # Quality check across multiple frames (not for on-click)
 MIN_QUALITY_FRAMES = 3  # Consecutive quality frames required
+
+# ============================================
+# FACE VALIDATION SETTINGS
+# ============================================
+
+# Mask/Occlusion Detection
+ENABLE_MASK_DETECTION = True  # Detect and reject masked faces
+ENABLE_OCCLUSION_DETECTION = True  # Detect any face covering
+MASK_DETECTION_CONFIDENCE = 0.7  # Minimum confidence for mask detection
+
+# Eye State Validation
+ENABLE_EYE_STATE_CHECK = True  # Ensure eyes are open
+REQUIRE_BOTH_EYES_OPEN = True  # Both eyes must be open
+EYE_ASPECT_RATIO_THRESHOLD = 0.21  # Below this = eyes closed
+
+# Complete Face Visibility
+REQUIRE_FULL_FACE_VISIBLE = True  # All facial features must be visible
+MIN_FACIAL_FEATURES_VISIBLE = 4  # Minimum features (eyes, nose, mouth, etc.)
