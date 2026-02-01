@@ -164,10 +164,12 @@ class FacialRecognitionSystem:
         # Check if database has users
         users = self.db_manager.get_all_users()
         if len(users) == 0:
-            print("\n[WARNING] No authorized users in database!")
-            print("[WARNING] Please enroll users using: python enroll_user.py --name <name>")
+            print("\n[ERROR] No authorized users in database!")
+            print("[ERROR] System cannot start without enrolled users for security reasons.")
+            print("[ERROR] Please enroll at least one user using: python enroll_user.py --name <name>")
+            raise RuntimeError("Cannot start system with empty database - security risk!")
         else:
-            print(f"\n[INFO] Authorized users: {', '.join(users)}")
+            print(f"\n[INFO] Authorized users ({len(users)}): {', '.join(users)}")
         
         # Tracking for unknown faces
         self.unknown_face_counter = 0
@@ -193,6 +195,16 @@ class FacialRecognitionSystem:
         """
         Process a single frame: detect faces, recognize, and draw alerts
         This is called once per button press for on-click verification
+        
+        IMPORTANT: This function may return early if:
+        - No face is detected
+        - Face extraction fails
+        - Quality checks fail
+        - Liveness check fails
+        - Unknown person detected (for security)
+        
+        In all early return cases, frame state (last_access_time, last_event_text)
+        is properly updated before returning.
         
         Args:
             frame: Video frame from camera
@@ -302,34 +314,14 @@ class FacialRecognitionSystem:
                         dist_str = f"{distance:.4f}" if distance is not None else "N/A"
                         print(f"[DEBUG] Best match: None, Distance: {dist_str}, Threshold: {self.recognition_threshold}")
                 
-                # Step 6: Confidence Check - MUST BE 100% (1.0)
-                if matched_name and confidence >= config.MIN_MATCH_CONFIDENCE:
-                    # ACCESS GRANTED - Authorized user with required confidence
-                    print(f"[SUCCESS] Access Granted: {matched_name} (distance: {distance:.4f}, confidence: {confidence:.2%})")
-                    self.last_access_person = matched_name
-                    self.last_access_time = current_time
-                    self.last_event_text = f"Last: GRANTED - {matched_name} ({confidence:.0%} confidence)"
+                # CRITICAL: Step 6 - Explicit unknown check
+                if matched_name is None:
+                    # Unknown person - REJECT immediately
+                    if config.DEBUG_MODE:
+                        dist_str = f"{distance:.4f}" if distance != float('inf') else "inf"
+                        print(f"[SECURITY] Unknown person detected! Best distance: {dist_str}, Threshold: {self.recognition_threshold}")
                     
-                    # Log access event
-                    log_access_event("ACCESS GRANTED", person_name=matched_name)
-                    
-                    # Display granted message
-                    display_access_granted(frame, matched_name)
-                else:
-                    # ACCESS DENIED - Not meeting confidence requirement
-                    if matched_name:
-                        print(f"[FAILURE] Access Denied: Confidence too low ({confidence:.2%} < {config.MIN_MATCH_CONFIDENCE:.0%})")
-                        self.last_event_text = f"Last: DENIED - Low confidence ({confidence:.2%})"
-                    else:
-                        if distance is not None and distance != float('inf'):
-                            print(f"[FAILURE] Access Denied: Unknown Person (best distance: {distance:.4f})")
-                        else:
-                            print(f"[FAILURE] Access Denied: Unknown Person (no database entries)")
-                        self.last_event_text = f"Last: DENIED - Unknown"
-                    
-                    self.last_access_time = current_time
-                    
-                    # Save unknown face if enabled
+                    # Save unknown face for security review
                     photo_filename = None
                     if config.SAVE_UNKNOWN_FACES:
                         timestamp = time.strftime("%Y%m%d_%H%M%S")
@@ -337,11 +329,50 @@ class FacialRecognitionSystem:
                         save_unknown_face(face, self.unknown_face_counter)
                         self.unknown_face_counter += 1
                     
-                    # Log access event
-                    log_access_event("ACCESS DENIED", photo_filename=photo_filename)
-                    
-                    # Display denied message
+                    # Display ACCESS DENIED
                     display_access_denied(frame)
+                    
+                    # Log access event with details
+                    log_access_event("UNKNOWN", distance=distance, photo_filename=photo_filename)
+                    
+                    # Update last event
+                    dist_str = f"{distance:.4f}" if distance != float('inf') else "N/A"
+                    self.last_event_text = f"Last: DENIED - Unknown (dist: {dist_str})"
+                    self.last_access_time = current_time
+                    
+                    return frame  # Exit immediately - no access!
+                
+                # Step 7: Known person - check confidence
+                if config.DEBUG_MODE:
+                    print(f"[DEBUG] Match: {matched_name}, Distance: {distance:.4f}, Confidence: {confidence:.2%}, Threshold: {self.recognition_threshold}")
+                
+                # Step 8: Confidence check
+                if confidence >= config.MIN_MATCH_CONFIDENCE:
+                    # ACCESS GRANTED
+                    print(f"[SUCCESS] Access Granted: {matched_name} (distance: {distance:.4f}, confidence: {confidence:.2%})")
+                    self.last_access_person = matched_name
+                    self.last_access_time = current_time
+                    self.last_event_text = f"Last: GRANTED - {matched_name} ({confidence:.0%} confidence)"
+                    
+                    # Display granted message
+                    display_access_granted(frame, matched_name)
+                    
+                    # Log access event
+                    log_access_event(matched_name, "GRANTED", confidence=confidence, distance=distance)
+                else:
+                    # LOW CONFIDENCE - REJECT
+                    if config.DEBUG_MODE:
+                        print(f"[SECURITY] Low confidence: {confidence:.2%} < {config.MIN_MATCH_CONFIDENCE:.2%}")
+                    
+                    # Display ACCESS DENIED
+                    display_access_denied(frame)
+                    
+                    # Log access event
+                    log_access_event(matched_name, "DENIED - LOW CONFIDENCE", confidence=confidence, distance=distance)
+                    
+                    # Update last event
+                    self.last_event_text = f"Last: DENIED - Low confidence ({confidence:.2%})"
+                    self.last_access_time = current_time
             
             except Exception as e:
                 print(f"[ERROR] Failed to process face: {e}")
