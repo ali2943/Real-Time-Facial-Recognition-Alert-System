@@ -84,9 +84,9 @@ MIN_FACE_SIZE = 60  # Minimum face size in pixels
 
 RECOGNITION_THRESHOLD = 0.7  # Maximum distance for a match (lower = stricter)
 # Why 0.7 for FaceNet: Euclidean distance in 128-d space
-# - 0.6-0.7: Strict (high security, recommended for access control)
-# - 0.8-1.0: Balanced (general use)
-# - 1.0-1.2: Loose (convenience over security, higher false accept rate)
+# - 0.6-0.7: Strict (high security, recommended for access control, current setting at upper bound)
+# - 0.8-1.0: Balanced (general use, higher false accept risk)
+# - 1.0-1.2: Loose (convenience over security, significant false accept rate)
 # NOTE: InsightFace uses cosine distance, threshold auto-adjusted to 0.4-0.5
 
 EMBEDDING_SIZE = 128  # Size of face embeddings (128 for FaceNet, 512 for InsightFace)
@@ -172,8 +172,9 @@ MIN_FACE_RESOLUTION = 112  # Minimum face size in pixels
 
 OVERALL_QUALITY_THRESHOLD = 80  # Overall quality score (0-100)
 # Weighted combination of all quality checks
+# - 80: Strict, higher quality standards (current setting)
 # - 75: Balanced, accepts good quality faces
-# - 85: Strict, only pristine faces
+# - 85: Very strict, only pristine faces
 # - 65: Lenient, accepts borderline cases
 # See face_quality_checker.py for weight distribution
 
