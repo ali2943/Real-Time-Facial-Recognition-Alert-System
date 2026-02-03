@@ -1,0 +1,325 @@
+[2026-02-01 11:06:51] ACCESS GRANTED - John Doe
+[2026-02-01 11:07:20] ACCESS GRANTED - John Doe
+[2026-02-01 11:09:12] ACCESS GRANTED - John Doe
+[2026-02-01 11:09:16] ACCESS GRANTED - John Doe
+[2026-02-01 11:09:22] ACCESS GRANTED - John Doe
+[2026-02-01 11:11:45] ACCESS GRANTED - John Doe
+[2026-02-01 11:11:52] ACCESS GRANTED - John Doe
+[2026-02-01 11:12:08] ACCESS GRANTED - John Doe
+[2026-02-01 11:12:14] ACCESS GRANTED - John Doe
+[2026-02-01 11:12:27] ACCESS GRANTED - John Doe
+[2026-02-01 12:37:51] ACCESS GRANTED - John Doe
+[2026-02-01 12:37:54] ACCESS GRANTED - John Doe
+[2026-02-01 12:37:59] ACCESS GRANTED - John Doe
+[2026-02-01 12:38:17] ACCESS GRANTED - John Doe
+[2026-02-01 12:38:22] ACCESS GRANTED - John Doe
+[2026-02-01 13:36:55] ACCESS GRANTED - John Doe
+[2026-02-01 13:37:19] ACCESS GRANTED - John Doe
+[2026-02-01 13:37:33] ACCESS GRANTED - John Doe
+[2026-02-01 13:37:49] ACCESS GRANTED - John Doe
+[2026-02-01 13:38:21] ACCESS GRANTED - John Doe
+[2026-02-01 13:38:28] ACCESS GRANTED - John Doe
+[2026-02-01 13:38:38] ACCESS GRANTED - John Doe
+[2026-02-01 15:32:23] GRANTED - User: John Doe, Confidence: 100.00%, Distance: 0.0000
+[2026-02-01 15:32:40] GRANTED - User: John Doe, Confidence: 100.00%, Distance: 0.0000
+[2026-02-01 15:32:51] GRANTED - User: John Doe, Confidence: 100.00%, Distance: 0.0000
+[2026-02-01 15:33:01] GRANTED - User: John Doe, Confidence: 100.00%, Distance: 0.0000
+[2026-02-01 15:33:34] GRANTED - User: John Doe, Confidence: 100.00%, Distance: 0.0000
+[2026-02-01 15:33:37] GRANTED - User: John Doe, Confidence: 100.00%, Distance: 0.0000
+[2026-02-01 15:34:46] GRANTED - User: John Doe, Confidence: 100.00%, Distance: 0.0000
+[2026-02-01 15:53:40] ATTEMPTED - User: MASK_DETECTED, Reason: Mouth covered - likely wearing mask
+[2026-02-01 15:53:45] ATTEMPTED - User: MASK_DETECTED, Reason: Mouth covered - likely wearing mask
+[2026-02-01 15:53:50] ATTEMPTED - User: MASK_DETECTED, Reason: Mouth covered - likely wearing mask
+[2026-02-01 15:53:56] ATTEMPTED - User: MASK_DETECTED, Reason: Mouth and nose covered - mask detected
+[2026-02-01 15:53:58] ATTEMPTED - User: MASK_DETECTED, Reason: Mouth covered - likely wearing mask
+[2026-02-01 15:54:02] ATTEMPTED - User: MASK_DETECTED, Reason: Mouth covered - likely wearing mask
+[2026-02-01 15:54:06] ATTEMPTED - User: MASK_DETECTED, Reason: Mouth and nose covered - mask detected
+[2026-02-01 15:54:09] ATTEMPTED - User: MASK_DETECTED, Reason: Mouth and nose covered - mask detected
+[2026-02-01 15:54:15] ATTEMPTED - User: MASK_DETECTED, Reason: Mouth and nose covered - mask detected
+[2026-02-01 16:00:29] ATTEMPTED - User: MASK_DETECTED, Reason: Mouth covered - likely wearing mask
+[2026-02-01 16:00:35] ATTEMPTED - User: MASK_DETECTED, Reason: Mouth covered - likely wearing mask
+[2026-02-01 16:00:39] ATTEMPTED - User: MASK_DETECTED, Reason: Mouth and nose covered - mask detected
+[2026-02-01 16:24:47] ATTEMPTED - User: MASK_DETECTED, Reason: Mouth and nose covered - mask detected
+[2026-02-01 20:26:56] GRANTED - User: John Doe, Confidence: 100.00%, Distance: 0.0000
+[2026-02-01 21:37:42] GRANTED - User: John Doe, Confidence: 100.00%, Distance: 0.0000
+[2026-02-01 21:37:53] GRANTED - User: John Doe, Confidence: 100.00%, Distance: 0.0000
+[2026-02-01 21:38:13] GRANTED - User: John Doe, Confidence: 100.00%, Distance: 0.0000
+[2026-02-01 21:39:06] GRANTED - User: John Doe, Confidence: 100.00%, Distance: 0.0000
+[2026-02-01 21:39:13] GRANTED - User: John Doe, Confidence: 100.00%, Distance: 0.0000
+[2026-02-01 21:39:20] GRANTED - User: John Doe, Confidence: 100.00%, Distance: 0.0000
+[2026-02-01 21:56:55] GRANTED - User: John Doe, Confidence: 100.00%, Distance: 0.0000
+[2026-02-01 21:57:01] GRANTED - User: John Doe, Confidence: 100.00%, Distance: 0.0000
+[2026-02-01 21:57:12] GRANTED - User: John Doe, Confidence: 100.00%, Distance: 0.0000
+[2026-02-01 21:57:17] GRANTED - User: John Doe, Confidence: 100.00%, Distance: 0.0000
+[2026-02-02 14:01:41] GRANTED - User: John Doe, Confidence: 100.00%, Distance: 0.0000
+[2026-02-02 14:01:47] GRANTED - User: John Doe, Confidence: 100.00%, Distance: 0.0000
+[2026-02-02 14:02:44] GRANTED - User: John Doe, Confidence: 100.00%, Distance: 0.0000
+[2026-02-02 14:02:49] GRANTED - User: John Doe, Confidence: 100.00%, Distance: 0.0000
+[2026-02-02 15:51:06] DENIED - LOW CONFIDENCE - User: Ali, Confidence: 53.64%, Distance: 0.2782
+[2026-02-02 15:51:15] DENIED - LOW CONFIDENCE - User: Ali, Confidence: 51.75%, Distance: 0.2895
+[2026-02-02 15:51:21] DENIED - LOW CONFIDENCE - User: Ali, Confidence: 56.12%, Distance: 0.2633
+[2026-02-02 15:51:37] DENIED - LOW CONFIDENCE - User: Ali, Confidence: 42.47%, Distance: 0.3452
+[2026-02-02 15:51:49] DENIED - LOW CONFIDENCE - User: Ali, Confidence: 39.26%, Distance: 0.3644
+[2026-02-02 15:52:01] DENIED - LOW CONFIDENCE - User: Ali, Confidence: 33.03%, Distance: 0.4018
+[2026-02-02 15:52:04] DENIED - LOW CONFIDENCE - User: Ali, Confidence: 35.40%, Distance: 0.3876
+[2026-02-02 15:54:39] DENIED - LOW CONFIDENCE - User: Ali, Confidence: 39.74%, Distance: 0.3616
+[2026-02-02 15:54:45] DENIED - LOW CONFIDENCE - User: Ali, Confidence: 52.79%, Distance: 0.2832
+[2026-02-02 16:10:43] GRANTED - User: Ali, Confidence: 43.87%, Distance: 0.3368
+[2026-02-02 16:11:02] ATTEMPTED - User: UNKNOWN, Distance: 1.1478, Photo: unknown_20260202_161102_0.jpg
+[2026-02-02 16:11:09] ATTEMPTED - User: UNKNOWN, Distance: 0.6303, Photo: unknown_20260202_161109_1.jpg
+[2026-02-02 16:11:14] GRANTED - User: Ali, Confidence: 42.76%, Distance: 0.3434
+[2026-02-02 16:11:21] ATTEMPTED - User: UNKNOWN, Distance: 1.1199, Photo: unknown_20260202_161121_2.jpg
+[2026-02-02 16:12:06] ATTEMPTED - User: UNKNOWN, Distance: 1.1389, Photo: unknown_20260202_161206_3.jpg
+[2026-02-02 16:12:13] ATTEMPTED - User: UNKNOWN, Distance: 1.1773, Photo: unknown_20260202_161213_4.jpg
+[2026-02-02 16:12:17] ATTEMPTED - User: UNKNOWN, Distance: 0.6347, Photo: unknown_20260202_161217_5.jpg
+[2026-02-02 16:12:21] ATTEMPTED - User: UNKNOWN, Distance: 0.6420, Photo: unknown_20260202_161221_6.jpg
+[2026-02-02 16:12:27] ATTEMPTED - User: UNKNOWN, Distance: 1.1831, Photo: unknown_20260202_161227_7.jpg
+[2026-02-02 16:12:31] ATTEMPTED - User: UNKNOWN, Distance: 0.6388, Photo: unknown_20260202_161231_8.jpg
+[2026-02-02 16:12:35] ATTEMPTED - User: UNKNOWN, Distance: 0.7333, Photo: unknown_20260202_161235_9.jpg
+[2026-02-02 16:12:40] ATTEMPTED - User: UNKNOWN, Distance: 0.6302, Photo: unknown_20260202_161240_10.jpg
+[2026-02-02 16:12:52] DENIED - LOW CONFIDENCE - User: Ali, Confidence: 1.14%, Distance: 0.5932
+[2026-02-02 16:12:56] ATTEMPTED - User: UNKNOWN, Distance: 0.6252, Photo: unknown_20260202_161256_11.jpg
+[2026-02-02 16:13:01] ATTEMPTED - User: UNKNOWN, Distance: 0.6383, Photo: unknown_20260202_161301_12.jpg
+[2026-02-02 16:13:05] ATTEMPTED - User: UNKNOWN, Distance: 0.6744, Photo: unknown_20260202_161304_13.jpg
+[2026-02-02 16:13:14] GRANTED - User: Ali, Confidence: 41.63%, Distance: 0.3502
+[2026-02-02 16:15:30] DENIED - LOW CONFIDENCE - User: Ghazala, Confidence: 26.39%, Distance: 0.4417
+[2026-02-02 16:15:35] DENIED - LOW CONFIDENCE - User: Ghazala, Confidence: 37.00%, Distance: 0.3780
+[2026-02-02 16:15:45] DENIED - LOW CONFIDENCE - User: Ghazala, Confidence: 19.75%, Distance: 0.4815
+[2026-02-02 16:15:49] DENIED - LOW CONFIDENCE - User: Ali, Confidence: 12.51%, Distance: 0.5250
+[2026-02-02 16:15:57] DENIED - LOW CONFIDENCE - User: Ghazala, Confidence: 22.54%, Distance: 0.4648
+[2026-02-02 16:16:21] DENIED - LOW CONFIDENCE - User: Ghazala, Confidence: 10.13%, Distance: 0.5392
+[2026-02-02 16:17:15] DENIED - LOW CONFIDENCE - User: Ali, Confidence: 35.91%, Distance: 0.3846
+[2026-02-02 16:17:20] DENIED - LOW CONFIDENCE - User: Ali, Confidence: 31.89%, Distance: 0.4086
+[2026-02-02 16:17:25] DENIED - LOW CONFIDENCE - User: Ali, Confidence: 30.69%, Distance: 0.4159
+[2026-02-02 16:17:32] GRANTED - User: Ali, Confidence: 40.74%, Distance: 0.3555
+[2026-02-02 16:17:38] GRANTED - User: Ali, Confidence: 44.98%, Distance: 0.3301
+[2026-02-02 16:17:44] DENIED - LOW CONFIDENCE - User: Ali, Confidence: 5.71%, Distance: 0.5657
+[2026-02-02 16:17:48] ATTEMPTED - User: UNKNOWN, Distance: 0.7501, Photo: unknown_20260202_161748_0.jpg
+[2026-02-02 16:17:53] DENIED - LOW CONFIDENCE - User: Ali, Confidence: 30.38%, Distance: 0.4177
+[2026-02-02 16:17:58] DENIED - LOW CONFIDENCE - User: Ali, Confidence: 29.17%, Distance: 0.4250
+[2026-02-02 16:18:05] DENIED - LOW CONFIDENCE - User: Ali, Confidence: 37.89%, Distance: 0.3727
+[2026-02-02 16:18:10] DENIED - LOW CONFIDENCE - User: Ali, Confidence: 33.48%, Distance: 0.3991
+[2026-02-02 16:18:15] DENIED - LOW CONFIDENCE - User: Ali, Confidence: 35.47%, Distance: 0.3872
+[2026-02-02 16:18:19] DENIED - LOW CONFIDENCE - User: Ali, Confidence: 36.77%, Distance: 0.3794
+[2026-02-02 16:18:27] DENIED - LOW CONFIDENCE - User: Ali, Confidence: 35.20%, Distance: 0.3888
+[2026-02-02 16:18:30] DENIED - LOW CONFIDENCE - User: Ali, Confidence: 37.43%, Distance: 0.3754
+[2026-02-02 16:18:34] GRANTED - User: Ali, Confidence: 40.02%, Distance: 0.3599
+[2026-02-02 16:18:40] DENIED - LOW CONFIDENCE - User: Ali, Confidence: 37.64%, Distance: 0.3741
+[2026-02-02 16:18:44] DENIED - LOW CONFIDENCE - User: Ali, Confidence: 35.13%, Distance: 0.3892
+[2026-02-02 16:18:48] GRANTED - User: Ali, Confidence: 43.37%, Distance: 0.3398
+[2026-02-02 16:18:53] DENIED - LOW CONFIDENCE - User: Ali, Confidence: 39.65%, Distance: 0.3621
+[2026-02-02 16:18:58] GRANTED - User: Ali, Confidence: 42.84%, Distance: 0.3430
+[2026-02-02 16:21:03] DENIED - LOW CONFIDENCE - User: Amna, Confidence: 21.31%, Distance: 0.4721
+[2026-02-02 16:21:09] ATTEMPTED - User: UNKNOWN, Distance: 0.6225, Photo: unknown_20260202_162109_0.jpg
+[2026-02-02 16:21:15] DENIED - LOW CONFIDENCE - User: Amna, Confidence: 39.72%, Distance: 0.3617
+[2026-02-02 16:21:22] GRANTED - User: Amna, Confidence: 46.26%, Distance: 0.3224
+[2026-02-02 16:21:30] GRANTED - User: Amna, Confidence: 41.23%, Distance: 0.3526
+[2026-02-02 16:21:37] DENIED - LOW CONFIDENCE - User: Ali, Confidence: 35.32%, Distance: 0.3881
+[2026-02-02 16:21:42] DENIED - LOW CONFIDENCE - User: Ali, Confidence: 36.04%, Distance: 0.3837
+[2026-02-02 16:21:53] DENIED - LOW CONFIDENCE - User: Ali, Confidence: 39.80%, Distance: 0.3612
+[2026-02-02 16:21:59] DENIED - LOW CONFIDENCE - User: Ali, Confidence: 36.35%, Distance: 0.3819
+[2026-02-02 16:23:24] DENIED - LOW CONFIDENCE - User: Ali, Confidence: 32.89%, Distance: 0.4027
+[2026-02-02 16:23:32] DENIED - LOW CONFIDENCE - User: Ali, Confidence: 34.24%, Distance: 0.3945
+[2026-02-02 16:23:39] GRANTED - User: Ali, Confidence: 39.38%, Distance: 0.3637
+[2026-02-02 16:23:50] DENIED - LOW CONFIDENCE - User: Ali, Confidence: 33.84%, Distance: 0.3969
+[2026-02-02 16:23:56] GRANTED - User: Ali, Confidence: 40.86%, Distance: 0.3549
+[2026-02-02 16:25:37] GRANTED - User: Haram, Confidence: 38.13%, Distance: 0.3712
+[2026-02-02 16:25:42] DENIED - LOW CONFIDENCE - User: Haram, Confidence: 29.02%, Distance: 0.4259
+[2026-02-02 16:25:48] DENIED - LOW CONFIDENCE - User: Haram, Confidence: 34.12%, Distance: 0.3953
+[2026-02-02 16:25:53] DENIED - LOW CONFIDENCE - User: Haram, Confidence: 23.66%, Distance: 0.4580
+[2026-02-02 16:25:59] DENIED - LOW CONFIDENCE - User: Haram, Confidence: 28.60%, Distance: 0.4284
+[2026-02-02 16:26:06] GRANTED - User: Haram, Confidence: 43.37%, Distance: 0.3398
+[2026-02-02 16:26:12] GRANTED - User: Haram, Confidence: 42.55%, Distance: 0.3447
+[2026-02-02 16:26:20] ATTEMPTED - User: UNKNOWN, Distance: 0.6082, Photo: unknown_20260202_162620_0.jpg
+[2026-02-02 16:26:29] GRANTED - User: Ali, Confidence: 44.64%, Distance: 0.3322
+[2026-02-02 16:26:41] GRANTED - User: Haram, Confidence: 40.92%, Distance: 0.3545
+[2026-02-02 16:26:52] DENIED - LOW CONFIDENCE - User: Ali, Confidence: 0.42%, Distance: 0.5975
+[2026-02-02 16:26:57] ATTEMPTED - User: UNKNOWN, Distance: 0.6377, Photo: unknown_20260202_162657_1.jpg
+[2026-02-02 16:27:16] DENIED - LOW CONFIDENCE - User: Haram, Confidence: 26.43%, Distance: 0.4414
+[2026-02-02 16:27:24] DENIED - LOW CONFIDENCE - User: Haram, Confidence: 6.62%, Distance: 0.5603
+[2026-02-02 16:27:35] DENIED - LOW CONFIDENCE - User: Haram, Confidence: 17.15%, Distance: 0.4971
+[2026-02-02 16:27:42] GRANTED - User: Haram, Confidence: 40.18%, Distance: 0.3589
+[2026-02-02 16:28:04] DENIED - LOW CONFIDENCE - User: Ali, Confidence: 33.44%, Distance: 0.3994
+[2026-02-02 16:28:09] GRANTED - User: Ali, Confidence: 42.05%, Distance: 0.3477
+[2026-02-02 16:28:15] DENIED - LOW CONFIDENCE - User: Ali, Confidence: 4.68%, Distance: 0.5719
+[2026-02-02 16:28:20] DENIED - LOW CONFIDENCE - User: Ali, Confidence: 20.36%, Distance: 0.4778
+[2026-02-02 16:28:28] GRANTED - User: Ali, Confidence: 42.83%, Distance: 0.3430
+[2026-02-02 20:10:30] DENIED - User: UNKNOWN, Confidence: 0.00%, Distance: inf
+[2026-02-02 20:10:37] DENIED - User: UNKNOWN, Confidence: 0.00%, Distance: inf
+[2026-02-02 20:11:06] DENIED - LIVENESS - User: Ali, Confidence: 44.33%, Distance: 0.3800
+[2026-02-02 20:11:12] DENIED - LIVENESS - User: Ali, Confidence: 43.63%, Distance: 0.3694
+[2026-02-02 20:11:25] DENIED - LIVENESS - User: Ali, Confidence: 36.11%, Distance: 0.3711
+[2026-02-02 20:14:50] DENIED - User: UNKNOWN, Confidence: 0.00%, Distance: inf
+[2026-02-02 20:14:58] DENIED - User: UNKNOWN, Confidence: 0.00%, Distance: inf
+[2026-02-02 20:15:21] DENIED - LIVENESS - User: Ali, Confidence: 44.64%, Distance: 0.3171
+[2026-02-02 20:15:28] DENIED - LIVENESS - User: Ali, Confidence: 45.14%, Distance: 0.3650
+[2026-02-02 20:18:08] DENIED - Insufficient confidence (51.0%) - User: Ali, Confidence: 50.99%, Distance: 0.3921
+[2026-02-02 20:18:15] DENIED - Insufficient confidence (54.3%) - User: Ali, Confidence: 54.33%, Distance: 0.3654
+[2026-02-02 20:18:21] DENIED - Insufficient confidence (58.1%) - User: Ali, Confidence: 58.11%, Distance: 0.3351
+[2026-02-02 20:24:24] DENIED - User: UNKNOWN, Confidence: 0.00%, Distance: inf
+[2026-02-02 20:24:55] GRANTED - User: Ali, Confidence: 61.83%, Distance: 0.3776
+[2026-02-02 20:25:05] GRANTED - User: Ali, Confidence: 61.05%, Distance: 0.3805
+[2026-02-02 20:41:57] DENIED - User: UNKNOWN, Confidence: 0.00%, Distance: inf
+[2026-02-02 20:42:04] DENIED - User: UNKNOWN, Confidence: 0.00%, Distance: inf
+[2026-02-02 20:42:18] GRANTED - User: Ali, Confidence: 75.43%, Distance: 0.2966
+[2026-02-02 20:42:54] GRANTED - User: Ali, Confidence: 65.66%, Distance: 0.3608
+[2026-02-02 20:44:11] DENIED - User: UNKNOWN, Confidence: 0.00%, Distance: inf
+[2026-02-02 20:44:18] GRANTED - User: Ali, Confidence: 61.09%, Distance: 0.3803
+[2026-02-02 20:44:29] DENIED - User: UNKNOWN, Confidence: 0.00%, Distance: inf
+[2026-02-02 20:47:05] DENIED - User: UNKNOWN, Confidence: 0.00%, Distance: inf
+[2026-02-02 20:50:07] GRANTED - User: Haram, Confidence: 80.32%, Distance: 0.3508
+[2026-02-02 20:50:16] GRANTED - User: Haram, Confidence: 80.37%, Distance: 0.3525
+[2026-02-02 20:50:23] DENIED - User: UNKNOWN, Confidence: 0.00%, Distance: inf
+[2026-02-02 20:50:34] GRANTED - User: Haram, Confidence: 74.72%, Distance: 0.4246
+[2026-02-02 20:50:47] DENIED - User: UNKNOWN, Confidence: 0.00%, Distance: inf
+[2026-02-02 20:50:53] DENIED - User: UNKNOWN, Confidence: 0.00%, Distance: inf
+[2026-02-02 20:53:45] GRANTED - User: Amna, Confidence: 77.76%, Distance: 0.4500
+[2026-02-02 20:53:52] GRANTED - User: Amna, Confidence: 80.00%, Distance: 0.4234
+[2026-02-02 20:53:58] GRANTED - User: Amna, Confidence: 77.78%, Distance: 0.4621
+[2026-02-02 20:54:03] GRANTED - User: Amna, Confidence: 80.15%, Distance: 0.4319
+[2026-02-02 20:54:09] GRANTED - User: Amna, Confidence: 60.23%, Distance: 0.6561
+[2026-02-02 20:54:24] GRANTED - User: Amna, Confidence: 78.55%, Distance: 0.4804
+[2026-02-02 20:54:32] GRANTED - User: Ali, Confidence: 55.37%, Distance: 0.3954
+[2026-02-02 20:55:09] DENIED - Insufficient confidence (53.9%) - User: Haram, Confidence: 53.89%, Distance: 0.5514
+[2026-02-02 20:55:20] DENIED - User: UNKNOWN, Confidence: 0.00%, Distance: inf
+[2026-02-02 20:55:32] DENIED - User: UNKNOWN, Confidence: 0.00%, Distance: inf
+[2026-02-02 20:55:41] GRANTED - User: Haram, Confidence: 60.10%, Distance: 0.5321
+[2026-02-02 20:56:03] GRANTED - User: Haram, Confidence: 57.67%, Distance: 0.5630
+[2026-02-02 20:59:17] GRANTED - User: Fatima, Confidence: 79.37%, Distance: 0.4396
+[2026-02-02 20:59:25] GRANTED - User: Fatima, Confidence: 81.63%, Distance: 0.4066
+[2026-02-02 20:59:29] GRANTED - User: Fatima, Confidence: 79.35%, Distance: 0.4459
+[2026-02-02 20:59:36] DENIED - User: UNKNOWN, Confidence: 0.00%, Distance: inf
+[2026-02-02 20:59:41] DENIED - User: UNKNOWN, Confidence: 0.00%, Distance: inf
+[2026-02-02 20:59:46] DENIED - User: UNKNOWN, Confidence: 0.00%, Distance: inf
+[2026-02-02 20:59:52] DENIED - User: UNKNOWN, Confidence: 0.00%, Distance: inf
+[2026-02-02 20:59:57] DENIED - User: UNKNOWN, Confidence: 0.00%, Distance: inf
+[2026-02-02 21:00:24] DENIED - User: UNKNOWN, Confidence: 0.00%, Distance: inf
+[2026-02-02 21:00:30] DENIED - User: UNKNOWN, Confidence: 0.00%, Distance: inf
+[2026-02-02 21:00:36] DENIED - User: UNKNOWN, Confidence: 0.00%, Distance: inf
+[2026-02-02 21:00:44] DENIED - User: UNKNOWN, Confidence: 0.00%, Distance: inf
+[2026-02-02 21:00:49] DENIED - User: UNKNOWN, Confidence: 0.00%, Distance: inf
+[2026-02-02 21:01:03] DENIED - User: UNKNOWN, Confidence: 0.00%, Distance: inf
+[2026-02-02 21:01:38] DENIED - User: UNKNOWN, Confidence: 0.00%, Distance: inf
+[2026-02-02 21:01:46] DENIED - User: UNKNOWN, Confidence: 0.00%, Distance: inf
+[2026-02-02 21:01:54] DENIED - User: UNKNOWN, Confidence: 0.00%, Distance: inf
+[2026-02-02 21:03:44] GRANTED - User: Ali, Confidence: 76.82%, Distance: 0.2849
+[2026-02-02 21:03:49] GRANTED - User: Ali, Confidence: 72.53%, Distance: 0.3188
+[2026-02-02 21:03:55] DENIED - User: UNKNOWN, Confidence: 0.00%, Distance: inf
+[2026-02-02 21:04:00] DENIED - User: UNKNOWN, Confidence: 0.00%, Distance: inf
+[2026-02-02 21:04:05] GRANTED - User: Ali, Confidence: 73.93%, Distance: 0.3084
+[2026-02-02 21:04:18] DENIED - User: UNKNOWN, Confidence: 0.00%, Distance: inf
+[2026-02-02 21:04:23] DENIED - User: UNKNOWN, Confidence: 0.00%, Distance: inf
+[2026-02-02 21:04:28] DENIED - User: UNKNOWN, Confidence: 0.00%, Distance: inf
+[2026-02-02 21:04:33] GRANTED - User: Ali, Confidence: 75.39%, Distance: 0.2968
+[2026-02-02 21:25:47] DENIED - User: UNKNOWN, Confidence: 0.00%, Distance: inf
+[2026-02-02 21:25:57] DENIED - User: UNKNOWN, Confidence: 0.00%, Distance: inf
+[2026-02-02 21:26:58] DENIED - User: UNKNOWN, Confidence: 0.00%, Distance: inf
+[2026-02-02 21:29:33] DENIED - User: UNKNOWN, Confidence: 0.00%, Distance: inf
+[2026-02-02 21:29:43] DENIED - User: UNKNOWN, Confidence: 0.00%, Distance: inf
+[2026-02-02 21:29:49] DENIED - User: UNKNOWN, Confidence: 0.00%, Distance: inf
+[2026-02-02 21:30:06] DENIED - User: UNKNOWN, Confidence: 0.00%, Distance: inf
+[2026-02-02 21:30:14] DENIED - User: UNKNOWN, Confidence: 0.00%, Distance: inf
+[2026-02-02 21:30:22] DENIED - User: UNKNOWN, Confidence: 0.00%, Distance: inf
+[2026-02-03 08:43:24] DENIED - User: UNKNOWN, Confidence: 0.00%, Distance: inf
+[2026-02-03 08:43:32] DENIED - User: UNKNOWN, Confidence: 0.00%, Distance: inf
+[2026-02-03 08:43:39] DENIED - User: UNKNOWN, Confidence: 0.00%, Distance: inf
+[2026-02-03 09:56:40] DENIED - User: UNKNOWN, Confidence: 0.00%, Distance: inf
+[2026-02-03 09:56:46] DENIED - User: UNKNOWN, Confidence: 0.00%, Distance: inf
+[2026-02-03 11:11:12] DENIED - User: UNKNOWN, Confidence: 0.00%, Distance: inf
+[2026-02-03 11:26:04] GRANTED - User: Ali, Confidence: 71.22%, Distance: 0.3293
+[2026-02-03 11:26:12] GRANTED - User: Ali, Confidence: 71.92%, Distance: 0.3296
+[2026-02-03 11:26:17] DENIED - User: UNKNOWN, Confidence: 0.00%, Distance: inf
+[2026-02-03 11:26:30] DENIED - User: UNKNOWN, Confidence: 0.00%, Distance: inf
+[2026-02-03 11:26:36] GRANTED - User: Ali, Confidence: 71.13%, Distance: 0.3400
+[2026-02-03 11:26:49] DENIED - User: UNKNOWN, Confidence: 0.00%, Distance: inf
+[2026-02-03 11:27:10] DENIED - User: UNKNOWN, Confidence: 0.00%, Distance: inf
+[2026-02-03 11:27:21] GRANTED - User: Ali, Confidence: 66.74%, Distance: 0.3731
+[2026-02-03 11:27:43] DENIED - User: UNKNOWN, Confidence: 0.00%, Distance: inf
+[2026-02-03 11:29:13] GRANTED - User: Ghazala, Confidence: 78.80%, Distance: 0.2673
+[2026-02-03 11:29:23] DENIED - User: UNKNOWN, Confidence: 0.00%, Distance: inf
+[2026-02-03 11:29:32] DENIED - User: UNKNOWN, Confidence: 0.00%, Distance: inf
+[2026-02-03 11:29:36] DENIED - Insufficient confidence (54.9%) - User: Ali, Confidence: 54.90%, Distance: 0.3978
+[2026-02-03 11:29:41] DENIED - User: UNKNOWN, Confidence: 0.00%, Distance: inf
+[2026-02-03 11:29:47] GRANTED - User: Ghazala, Confidence: 82.38%, Distance: 0.2323
+[2026-02-03 11:29:57] DENIED - Insufficient confidence (54.2%) - User: Ali, Confidence: 54.16%, Distance: 0.3989
+[2026-02-03 11:30:04] DENIED - User: UNKNOWN, Confidence: 0.00%, Distance: inf
+[2026-02-03 11:30:08] GRANTED - User: Ali, Confidence: 57.17%, Distance: 0.3934
+[2026-02-03 11:48:09] DENIED - Insufficient confidence (54.8%) - User: Ali, Confidence: 54.80%, Distance: 0.3979
+[2026-02-03 11:48:14] DENIED - User: UNKNOWN, Confidence: 0.00%, Distance: inf
+[2026-02-03 11:48:20] GRANTED - User: Ali, Confidence: 59.41%, Distance: 0.3874
+[2026-02-03 11:49:07] DENIED - Insufficient confidence (52.4%) - User: Ali, Confidence: 52.36%, Distance: 0.4130
+[2026-02-03 11:49:13] DENIED - User: UNKNOWN, Confidence: 0.00%, Distance: inf
+[2026-02-03 11:49:18] DENIED - Insufficient confidence (54.5%) - User: Ali, Confidence: 54.54%, Distance: 0.4105
+[2026-02-03 11:49:23] DENIED - User: UNKNOWN, Confidence: 0.00%, Distance: inf
+[2026-02-03 11:49:29] GRANTED - User: Ali, Confidence: 63.58%, Distance: 0.3834
+[2026-02-03 12:39:26] GRANTED - User: Ali
+, Confidence: 90.28%, Distance: 0.3158
+[2026-02-03 12:39:33] DENIED - User: UNKNOWN, Confidence: 0.00%, Distance: inf
+[2026-02-03 12:39:38] GRANTED - User: Ali
+, Confidence: 92.13%, Distance: 0.2610
+[2026-02-03 12:44:34] GRANTED - User: Ali
+, Confidence: 81.79%, Distance: 0.5361
+[2026-02-03 12:44:50] DENIED - User: UNKNOWN, Confidence: 0.00%, Distance: inf
+[2026-02-03 12:44:57] DENIED - User: UNKNOWN, Confidence: 0.00%, Distance: inf
+[2026-02-03 12:45:02] GRANTED - User: Ali
+, Confidence: 82.47%, Distance: 0.5204
+[2026-02-03 12:45:08] GRANTED - User: Ali
+, Confidence: 90.18%, Distance: 0.3189
+[2026-02-03 12:45:17] GRANTED - User: Ali
+, Confidence: 80.31%, Distance: 0.5693
+[2026-02-03 12:45:42] GRANTED - User: Ali
+, Confidence: 81.20%, Distance: 0.5496
+[2026-02-03 12:46:04] GRANTED - User: Ali
+, Confidence: 78.21%, Distance: 0.6135
+[2026-02-03 13:00:15] DENIED - LIVENESS - User: Ali
+, Confidence: 49.38%, Distance: 0.6103
+[2026-02-03 13:00:21] DENIED - LIVENESS - User: Ali
+, Confidence: 39.67%, Distance: 0.4969
+[2026-02-03 13:00:28] DENIED - LIVENESS - User: Ali
+, Confidence: 41.16%, Distance: 0.3416
+[2026-02-03 13:00:34] DENIED - LIVENESS - User: Ali
+, Confidence: 40.34%, Distance: 0.5272
+[2026-02-03 13:01:34] DENIED - LIVENESS - User: Ali
+, Confidence: 42.34%, Distance: 0.5147
+[2026-02-03 13:01:44] DENIED - LIVENESS - User: Ali
+, Confidence: 48.71%, Distance: 0.2579
+[2026-02-03 13:02:35] DENIED - LIVENESS - User: Ali
+, Confidence: 42.75%, Distance: 0.5501
+[2026-02-03 13:02:46] DENIED - LIVENESS - User: Ali
+, Confidence: 41.16%, Distance: 0.5139
+[2026-02-03 13:22:39] GRANTED - User: Ali
+, Confidence: 75.07%, Distance: 0.5475
+[2026-02-03 13:22:48] GRANTED - User: Ali
+, Confidence: 73.02%, Distance: 0.5493
+[2026-02-03 13:22:59] GRANTED - User: Ali
+, Confidence: 71.51%, Distance: 0.6333
+[2026-02-03 13:23:09] GRANTED - User: Ali
+, Confidence: 65.73%, Distance: 0.6208
+[2026-02-03 13:25:43] GRANTED - User: Ali
+, Confidence: 77.00%, Distance: 0.5012
+[2026-02-03 13:25:52] GRANTED - User: Ali
+, Confidence: 69.68%, Distance: 0.6000
+[2026-02-03 13:25:58] DENIED - User: UNKNOWN, Confidence: 0.00%, Distance: inf
+[2026-02-03 13:26:03] DENIED - User: UNKNOWN, Confidence: 0.00%, Distance: inf
+[2026-02-03 13:26:08] GRANTED - User: Ali
+, Confidence: 75.39%, Distance: 0.5287
+[2026-02-03 13:27:45] GRANTED - User: Ali
+, Confidence: 73.20%, Distance: 0.5610
+[2026-02-03 13:35:43] GRANTED - User: Ali
+, Confidence: 74.94%, Distance: 0.5472
+[2026-02-03 13:36:57] GRANTED - User: Ali
+, Confidence: 76.88%, Distance: 0.5079
+[2026-02-03 13:37:12] GRANTED - User: Ali
+, Confidence: 73.88%, Distance: 0.5545
+[2026-02-03 13:37:30] GRANTED - User: Ali
+, Confidence: 75.46%, Distance: 0.5491
+[2026-02-03 13:49:54] GRANTED - User: Ali
+, Confidence: 74.15%, Distance: 0.5489
+[2026-02-03 13:49:59] GRANTED - User: Ali
+, Confidence: 72.63%, Distance: 0.5663
+[2026-02-03 13:50:11] GRANTED - User: Ali
+, Confidence: 65.65%, Distance: 0.7076
+[2026-02-03 13:50:25] GRANTED - User: Ali
+, Confidence: 78.23%, Distance: 0.4577
+[2026-02-03 13:50:32] GRANTED - User: Ali
+, Confidence: 76.86%, Distance: 0.5064

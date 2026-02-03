@@ -1,737 +1,843 @@
 """
-Real-Time Facial Recognition Alert System
-Main application for on-click face verification with 100% confidence requirement
-Configured as an on-demand security door access control system
+Enhanced Real-Time Facial Recognition System
+Production-grade multi-stage pipeline with Advanced Multi-Layer Liveness Detection
 """
 
 import cv2
+import numpy as np
+import os
 import time
-import argparse
-from collections import Counter
+from datetime import datetime
+
+# Core components
 from face_detector import FaceDetector
 from face_recognition_model import FaceRecognitionModel
 from database_manager import DatabaseManager
-from utils import (
-    draw_face_box, save_unknown_face, display_stats,
-    display_access_granted, display_access_denied, display_system_ready,
-    log_access_event, display_system_status
-)
+from face_quality_checker import FaceQualityChecker
+from face_aligner import FaceAligner
+from face_occlusion_detector import FaceOcclusionDetector
+from image_preprocessor import ImagePreprocessor
+
+# Advanced components
+from advanced_preprocessing_pipeline import AdvancedPreprocessingPipeline
+from multi_sample_embedder import MultiSampleEmbedder
+from adaptive_threshold_manager import AdaptiveThresholdManager
+from intelligent_decision_engine import IntelligentDecisionEngine
+from simple_liveness_detector import SimpleLivenessDetector
+from advanced_liveness_detector import AdvancedLivenessDetector  # NEW - Multi-layer detection
+from adaptive_lighting_adjuster import AdaptiveLightingAdjuster
+
 import config
-import numpy as np
 
 
-class FrameBuffer:
+class EnhancedFaceRecognitionSystem:
     """
-    Store recent detections for temporal consistency checking
-    
-    Maintains a sliding window of recent face recognition results
-    to ensure consistent identification across multiple frames.
+    Production-grade face recognition with multi-stage processing
+    Now includes 6-layer advanced liveness detection
     """
-    
-    def __init__(self, buffer_size=5):
-        """
-        Initialize frame buffer
-        
-        Args:
-            buffer_size: Number of recent detections to store
-        """
-        self.buffer = []
-        self.buffer_size = buffer_size
-    
-    def add_detection(self, name, confidence):
-        """
-        Add a detection result to the buffer
-        
-        Args:
-            name: Detected person's name (or None for unknown)
-            confidence: Confidence score (0.0 to 1.0)
-        """
-        self.buffer.append((name, confidence))
-        if len(self.buffer) > self.buffer_size:
-            self.buffer.pop(0)
-    
-    def get_consensus(self):
-        """
-        Get consensus from recent frames using majority voting
-        
-        Returns:
-            Tuple of (consensus_name, average_confidence)
-            Returns (None, 0.0) if no consensus reached
-        """
-        if len(self.buffer) < 3:
-            # Need at least 3 frames for consensus
-            return None, 0.0
-        
-        # Count occurrences of each name
-        names = [n for n, c in self.buffer]
-        name_counts = Counter(names)
-        
-        # Get most common name
-        most_common_name, count = name_counts.most_common(1)[0]
-        
-        # Calculate average confidence for that name
-        confidences = [c for n, c in self.buffer if n == most_common_name]
-        avg_confidence = np.mean(confidences)
-        
-        # Require at least MIN_CONSENSUS_RATIO consistency
-        if count / len(self.buffer) >= config.MIN_CONSENSUS_RATIO:
-            return most_common_name, avg_confidence
-        
-        return None, 0.0
-    
-    def clear(self):
-        """Clear the buffer"""
-        self.buffer = []
-    
-    def is_empty(self):
-        """Check if buffer is empty"""
-        return len(self.buffer) == 0
-
-
-class FacialRecognitionSystem:
-    """Main system for on-click facial recognition - Security Door Access Control"""
     
     def __init__(self):
-        """Initialize the facial recognition system"""
-        print("[INFO] Initializing Security Door Access Control System...")
+        print("[INFO] Initializing Enhanced Security System...")
+        print("="*60)
         
-        # Store recognition threshold (may be adjusted for InsightFace)
-        self.recognition_threshold = config.RECOGNITION_THRESHOLD
+        # Core components
+        print("\n[CORE COMPONENTS]")
+        self.detector = FaceDetector()
+        self.recognizer = FaceRecognitionModel()
+        self.db_manager = DatabaseManager()
+        self.quality_checker = FaceQualityChecker()
+        self.aligner = FaceAligner()
+        self.occlusion_detector = FaceOcclusionDetector()
+        self.preprocessor = ImagePreprocessor()
         
-        # Initialize components - Try InsightFace first, fallback to FaceNet
-        if config.USE_INSIGHTFACE:
-            try:
-                from insightface_recognizer import InsightFaceRecognizer
-                self.recognizer = InsightFaceRecognizer(
-                    model_name=config.INSIGHTFACE_MODEL,
-                    gpu_enabled=config.GPU_ENABLED
-                )
-                self.detector = self.recognizer  # InsightFace has built-in detector
-                print("[INFO] Using InsightFace (ArcFace) for recognition")
-                
-                # Adjust threshold for InsightFace (uses cosine distance, different scale)
-                # Store in instance variable instead of modifying global config
-                if self.recognition_threshold > 0.7:
-                    self.recognition_threshold = 0.5  # Stricter for InsightFace
-                    print(f"[INFO] Adjusted threshold for InsightFace: {self.recognition_threshold}")
-            except (ImportError, RuntimeError) as e:
-                print(f"[WARNING] InsightFace not available ({e}), using FaceNet")
-                self.detector = FaceDetector()
-                self.recognizer = FaceRecognitionModel()
+        # Advanced components
+        print("\n[ADVANCED COMPONENTS]")
+        
+        # Adaptive lighting adjuster
+        if config.ENABLE_ADAPTIVE_LIGHTING:
+            self.lighting_adjuster = AdaptiveLightingAdjuster()
+            self.lighting_mode = config.LIGHTING_MODE
         else:
-            self.detector = FaceDetector()
-            self.recognizer = FaceRecognitionModel()
+            self.lighting_adjuster = None
+            self.lighting_mode = 'none'
+            print("[INFO] Adaptive lighting: DISABLED")
         
-        # Add new components
-        if config.ENABLE_QUALITY_CHECKS:
-            try:
-                from face_quality_checker import FaceQualityChecker
-                self.quality_checker = FaceQualityChecker()
-            except ImportError as e:
-                print(f"[WARNING] Quality checker not available: {e}")
-                self.quality_checker = None
+        # Advanced preprocessing pipeline
+        if config.ENABLE_ADVANCED_PREPROCESSING:
+            self.advanced_preprocessor = AdvancedPreprocessingPipeline()
         else:
-            self.quality_checker = None
+            self.advanced_preprocessor = None
+            print("[INFO] Advanced preprocessing: DISABLED")
         
-        if config.ENABLE_FACE_ALIGNMENT:
-            try:
-                from face_aligner import FaceAligner
-                self.face_aligner = FaceAligner()
-            except ImportError as e:
-                print(f"[WARNING] Face aligner not available: {e}")
-                self.face_aligner = None
+        # Multi-sample embedder
+        if config.ENABLE_MULTI_SAMPLE_EMBEDDING:
+            self.multi_embedder = MultiSampleEmbedder(self.recognizer)
         else:
-            self.face_aligner = None
+            self.multi_embedder = None
+            print("[INFO] Multi-sample embedding: DISABLED")
         
-        if config.LIVENESS_ENABLED:
-            try:
-                from liveness_detector import LivenessDetector
-                self.liveness_detector = LivenessDetector()
-            except ImportError as e:
-                print(f"[WARNING] Liveness detector not available: {e}")
-                self.liveness_detector = None
+        # Adaptive thresholds
+        if config.USE_ADAPTIVE_THRESHOLDS:
+            self.threshold_manager = AdaptiveThresholdManager(self.db_manager)
+        else:
+            self.threshold_manager = None
+            print("[INFO] Adaptive thresholds: DISABLED")
+        
+        # Intelligent decision engine
+        if config.USE_INTELLIGENT_DECISIONS:
+            self.decision_engine = IntelligentDecisionEngine()
+        else:
+            self.decision_engine = None
+            print("[INFO] Intelligent decisions: DISABLED")
+        
+        # ================================================
+        # LIVENESS DETECTOR (UPDATED - Advanced Multi-Layer)
+        # ================================================
+        if config.USE_ADVANCED_LIVENESS:
+            self.liveness_detector = AdvancedLivenessDetector()
+            print("[INFO] Liveness detection: ADVANCED (6-layer)")
+            print("  ✓ Texture Analysis")
+            print("  ✓ Frequency Analysis")
+            print("  ✓ Color Naturalness")
+            print("  ✓ Sharpness Detection")
+            print("  ✓ Local Variance")
+            print("  ✓ Skin Tone Validation")
+        elif config.ENABLE_SIMPLE_LIVENESS:
+            self.liveness_detector = SimpleLivenessDetector()
+            print("[INFO] Liveness detection: SIMPLE (3-layer)")
         else:
             self.liveness_detector = None
+            print("[INFO] Liveness detection: DISABLED")
         
-        # Mask/Occlusion Detection
-        if config.ENABLE_MASK_DETECTION or config.ENABLE_OCCLUSION_DETECTION:
-            try:
-                from face_occlusion_detector import FaceOcclusionDetector
-                self.mask_detector = FaceOcclusionDetector()
-            except ImportError as e:
-                print(f"[WARNING] Mask detector not available: {e}")
-                self.mask_detector = None
-        else:
-            self.mask_detector = None
+        # Stats
+        self.total_attempts = 0
+        self.successful_grants = 0
+        self.frame_count = 0
         
-        # Eye State Detection
-        if config.ENABLE_EYE_STATE_CHECK:
-            try:
-                from eye_state_detector import EyeStateDetector
-                self.eye_detector = EyeStateDetector()
-            except ImportError as e:
-                print(f"[WARNING] Eye detector not available: {e}")
-                self.eye_detector = None
-        else:
-            self.eye_detector = None
-        
-        # Image Preprocessor
-        if config.ENABLE_IMAGE_PREPROCESSING:
-            try:
-                from image_preprocessor import ImagePreprocessor
-                self.preprocessor = ImagePreprocessor()
-                print("[INFO] Image preprocessing enabled")
-            except ImportError as e:
-                print(f"[WARNING] Image preprocessor not available: {e}")
-                self.preprocessor = None
-        else:
-            self.preprocessor = None
-        
-        # Enhanced database manager
-        try:
-            from enhanced_database_manager import EnhancedDatabaseManager
-            self.db_manager = EnhancedDatabaseManager()
-        except ImportError:
-            print("[WARNING] Enhanced database manager not available, using standard")
-            self.db_manager = DatabaseManager()
-        
-        # Check if database has users
-        users = self.db_manager.get_all_users()
-        if len(users) == 0:
-            print("\n[ERROR] No authorized users in database!")
-            print("[ERROR] System cannot start without enrolled users for security reasons.")
-            print("[ERROR] Please enroll at least one user using: python enroll_user.py --name <name>")
-            raise RuntimeError("Cannot start system with empty database - security risk!")
-        else:
-            print(f"\n[INFO] Authorized users ({len(users)}): {', '.join(users)}")
-        
-        # Tracking for unknown faces
-        self.unknown_face_counter = 0
-        
-        # Frame buffer for temporal consistency (if enabled)
-        self.frame_buffer = None
-        if config.USE_TEMPORAL_CONSISTENCY:
-            self.frame_buffer = FrameBuffer(buffer_size=config.TEMPORAL_BUFFER_SIZE)
-            print(f"[INFO] Temporal consistency enabled (buffer size: {config.TEMPORAL_BUFFER_SIZE})")
-        
-        # Last access tracking
-        self.last_access_person = None
-        self.last_access_time = 0
-        self.last_event_text = ""
-        
-        # System uptime tracking
-        self.system_start_time = time.time()
-        
-        print("[INFO] System initialized successfully!")
-        print("[INFO] Running in ON-CLICK mode - Press SPACE to capture and verify\n")
+        print("\n" + "="*60)
+        print("[INFO] ✅ System initialized successfully!")
+        print(f"[INFO] Authorized users: {len(self.db_manager.get_all_users())}")
+        print(f"[INFO] Users: {', '.join(self.db_manager.get_all_users())}")
+        print("="*60 + "\n")
     
     def process_frame(self, frame):
         """
-        Process a single frame: detect faces, recognize, and draw alerts
-        This is called once per button press for on-click verification
+        Enhanced multi-stage processing pipeline
         
-        IMPORTANT: This function may return early if:
-        - No face is detected
-        - Face extraction fails
-        - Quality checks fail
-        - Liveness check fails
-        - Unknown person detected (for security)
-        
-        In all early return cases, frame state (last_access_time, last_event_text)
-        is properly updated before returning.
-        
-        Args:
-            frame: Video frame from camera
-            
-        Returns:
-            Processed frame with annotations
+        Stages:
+        0. Adaptive lighting correction
+        1. Face detection
+        2. Quality assessment
+        3. Advanced preprocessing
+        4. Face alignment
+        5. Multi-sample embedding
+        6. Adaptive matching
+        7. Advanced liveness detection (6-layer)
+        8. Intelligent decision
         """
-        current_time = time.time()
+        
+        self.frame_count += 1
+        display_frame = frame.copy()
+        
+        # ============================================
+        # STAGE 0: ADAPTIVE LIGHTING
+        # ============================================
+        if self.lighting_adjuster:
+            if config.DEBUG_MODE and self.frame_count % 30 == 0:
+                print("[STAGE 0] Adaptive Lighting...")
+                brightness_before = self.lighting_adjuster.get_brightness_info(frame)
+                print(f"  Before: Brightness {brightness_before['mean']:.1f}, "
+                      f"Range [{brightness_before['min']}, {brightness_before['max']}]")
+            
+            # Adjust full frame for display
+            if config.APPLY_LIGHTING_TO_FULL_FRAME:
+                frame = self.lighting_adjuster.adjust_lighting(frame, mode=self.lighting_mode)
+                display_frame = frame.copy()
+            
+            if config.DEBUG_MODE and self.frame_count % 30 == 0:
+                brightness_after = self.lighting_adjuster.get_brightness_info(frame)
+                print(f"  After:  Brightness {brightness_after['mean']:.1f}, "
+                      f"Range [{brightness_after['min']}, {brightness_after['max']}]")
+        
+        # ============================================
+        # STAGE 1: FACE DETECTION
+        # ============================================
+        if config.DEBUG_MODE:
+            print(f"\n{'='*60}")
+            print(f"[FRAME {self.frame_count}] PROCESSING")
+            print(f"{'='*60}")
+            print("[STAGE 1] Face Detection...")
+        
+        detections = self.detector.detect_faces(frame)
+        
+        if len(detections) == 0:
+            self._draw_status(display_frame, "No face detected", (0, 0, 255))
+            return display_frame
+        
+        # Use first detection
+        det = detections[0]
+        box = det['box']
+        confidence = det['confidence']
+        
+        if config.DEBUG_MODE:
+            print(f"  ✓ Face detected (confidence: {confidence:.2%})")
+        
+        # Draw face box
+        x, y, w, h = box
+        cv2.rectangle(display_frame, (x, y), (x+w, y+h), (0, 255, 0), 2)
+        
+        # Extract face
+        face = self.detector.extract_face(frame, box)
+        
+        if face.size == 0:
+            self._draw_status(display_frame, "Face extraction failed", (0, 0, 255))
+            return display_frame
+        
+        # ============================================
+        # FACE-SPECIFIC LIGHTING ADJUSTMENT
+        # ============================================
+        if self.lighting_adjuster and config.APPLY_LIGHTING_TO_FACES_ONLY:
+            if config.DEBUG_MODE:
+                print("[LIGHTING] Adjusting face region...")
+            
+            face = self.lighting_adjuster.adjust_lighting(face, mode=self.lighting_mode)
+            
+            if config.DEBUG_MODE:
+                face_brightness = self.lighting_adjuster.get_brightness_info(face)
+                print(f"  Face brightness: {face_brightness['mean']:.1f}")
+        
+        # ============================================
+        # STAGE 2: QUALITY ASSESSMENT
+        # ============================================
+        if config.DEBUG_MODE:
+            print("[STAGE 2] Quality Assessment...")
         
         try:
-            # Detect faces in the frame
-            detections = self.detector.detect_faces(frame)
+            quality_result = self.quality_checker.get_quality_score(face)
             
-            # If no faces detected
-            if len(detections) == 0:
-                cv2.putText(frame, "No face detected in image", 
-                           (50, frame.shape[0] // 2 - 50), 
-                           cv2.FONT_HERSHEY_SIMPLEX, 1.0, (0, 0, 255), 2)
-                print("[INFO] No face detected in captured image")
-                return frame
+            # Handle different return formats
+            if isinstance(quality_result, tuple) and len(quality_result) == 2:
+                quality_score, quality_details = quality_result
+            elif isinstance(quality_result, tuple) and len(quality_result) == 1:
+                quality_score = quality_result[0]
+                quality_details = {}
+            else:
+                quality_score = quality_result
+                quality_details = {}
             
-            # Process the first detected face
-            detection = detections[0]
-            box = detection['box']
-            confidence = detection['confidence']
+            if config.DEBUG_MODE:
+                print(f"  ✓ Quality score: {quality_score:.1f}/100")
+            
+            if quality_score < config.OVERALL_QUALITY_THRESHOLD:
+                reason = f"Quality too low: {quality_score:.0f}/100"
+                self._draw_status(display_frame, reason, (0, 165, 255))
+                return display_frame
+                
+        except Exception as e:
+            if config.DEBUG_MODE:
+                print(f"  ⚠ Quality check failed: {e}")
+            # Continue with default quality
+            quality_score = 100.0
+            quality_details = {}
+        
+        # ============================================
+        # STAGE 3: OCCLUSION CHECK
+        # ============================================
+        if config.ENABLE_MASK_DETECTION:
+            if config.DEBUG_MODE:
+                print("[STAGE 3] Occlusion Detection...")
             
             try:
-                # Extract face
-                face = self.detector.extract_face(frame, box)
+                occlusion_result = self.occlusion_detector.detect_occlusion(face)
                 
-                # Skip if face extraction failed
-                if face.size == 0:
-                    cv2.putText(frame, "Face extraction failed", 
-                               (50, frame.shape[0] // 2 - 50), 
-                               cv2.FONT_HERSHEY_SIMPLEX, 1.0, (0, 0, 255), 2)
-                    return frame
-                
-                # Get landmarks if available
-                landmarks = detection.get('keypoints', None)
-                
-                # NEW: Apply preprocessing BEFORE validation
-                if self.preprocessor is not None:
-                    if config.DEBUG_MODE:
-                        print("[DEBUG] Applying image preprocessing...")
-                    
-                    face = self.preprocessor.preprocess(face)  # Enhanced version
-                
-                # Step 1: Quality Check
-                if self.quality_checker is not None:
-                    quality_result = self.quality_checker.check_all(face, landmarks)
-                    quality_score = self.quality_checker.get_quality_score(face, landmarks)
-                    
-                    if config.DEBUG_MODE:
-                        print(f"[DEBUG] Face quality score: {quality_score:.1f}/100")
-                    
-                    if quality_score < config.OVERALL_QUALITY_THRESHOLD:
-                        if config.DEBUG_MODE:
-                            print(f"[DEBUG] Quality too low ({quality_score:.1f}), rejecting")
-                        # Show quality feedback to user
-                        self._display_quality_feedback(frame, quality_result, quality_score)
-                        return frame
-                
-                # Step 2: Liveness Detection
-                if self.liveness_detector is not None:
-                    is_live, liveness_conf, reason = self.liveness_detector.is_live(
-                        frame, box, landmarks
-                    )
-                    
-                    if config.DEBUG_MODE:
-                        print(f"[DEBUG] Liveness check: {is_live}, confidence: {liveness_conf:.2f}, reason: {reason}")
-                    
-                    if not is_live:
-                        print(f"[SECURITY] Liveness check failed: {reason}")
-                        self._display_spoof_warning(frame)
-                        log_access_event("SPOOF ATTEMPT", reason=reason)
-                        return frame
-                
-                # NEW: Step 2a - Soft Validation with multiple checks
-                validation_score = 0
-                max_validations = 0
-                validation_failures = []
-                
-                # Check 1: Mask Detection (if enabled)
-                if config.ENABLE_MASK_DETECTION and self.mask_detector is not None:
-                    max_validations += 1
-                    has_mask, mask_conf, mask_reason = self.mask_detector.detect_mask(face, landmarks)
-                    
-                    if has_mask and mask_conf > config.MASK_DETECTION_CONFIDENCE:
-                        validation_failures.append(f"Mask: {mask_reason}")
-                        if config.DEBUG_MODE:
-                            print(f"[VALIDATION] Mask check failed: {mask_reason} (confidence: {mask_conf:.2%})")
-                    else:
-                        validation_score += 1
-                        if config.DEBUG_MODE:
-                            print(f"[VALIDATION] Mask check passed (confidence: {mask_conf:.2%})")
-                
-                # Check 2: Eye State (if enabled)
-                if config.ENABLE_EYE_STATE_CHECK and self.eye_detector is not None:
-                    max_validations += 1
-                    eyes_open, left_ear, right_ear, eye_reason = self.eye_detector.are_eyes_open(landmarks)
-                    
-                    if not eyes_open:
-                        validation_failures.append(f"Eyes: {eye_reason}")
-                        if config.DEBUG_MODE:
-                            print(f"[VALIDATION] Eye check failed: {eye_reason}")
-                    else:
-                        validation_score += 1
-                        if config.DEBUG_MODE:
-                            print(f"[VALIDATION] Eye check passed: {eye_reason}")
-                    
-                    # Eye occlusion check (partial credit for less critical check)
-                    eyes_occluded, occl_conf, occl_reason = self.eye_detector.detect_eye_occlusion(face, landmarks)
-                    if eyes_occluded and occl_conf > config.OCCLUSION_CONFIDENCE_THRESHOLD:
-                        validation_failures.append(f"Occlusion: {occl_reason}")
-                    else:
-                        # Award partial credit (0.5) since occlusion is less critical than primary checks
-                        validation_score += 0.5
-                
-                # Soft validation logic
-                if config.USE_SOFT_VALIDATION:
-                    # Need to pass at least N out of M checks
-                    required_passes = min(config.VALIDATION_REQUIRED_PASSES, max_validations)
-                    
-                    if validation_score < required_passes:
-                        # Failed too many checks
-                        if config.DEBUG_MODE:
-                            print(f"[VALIDATION] Failed: {validation_score}/{max_validations} passed, need {required_passes}")
-                        
-                        failure_msg = "; ".join(validation_failures[:2])  # Show top 2 failures
-                        
-                        cv2.putText(frame, "ACCESS DENIED: Validation Failed", 
-                                   (50, frame.shape[0] // 2), 
-                                   cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 255), 2)
-                        cv2.putText(frame, f"{failure_msg}", 
-                                   (50, frame.shape[0] // 2 + 35), 
-                                   cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 1)
-                        
-                        log_access_event("VALIDATION_FAILED", reason=failure_msg)
-                        self.last_event_text = f"Last: DENIED - Validation failed"
-                        self.last_access_time = current_time
-                        return frame
-                    else:
-                        if config.DEBUG_MODE:
-                            print(f"[VALIDATION] Passed: {validation_score}/{max_validations} checks")
+                # Handle different return formats
+                if isinstance(occlusion_result, dict):
+                    has_mask = occlusion_result.get('has_mask', False)
+                    mask_confidence = occlusion_result.get('mask_confidence', 0.0)
                 else:
-                    # Old hard-fail logic (only if soft validation disabled)
-                    # Check 1: Mask Detection
-                    if config.ENABLE_MASK_DETECTION and self.mask_detector is not None:
-                        has_mask, mask_conf, mask_reason = self.mask_detector.detect_mask(face, landmarks)
-                        
-                        if has_mask:
-                            if config.DEBUG_MODE:
-                                print(f"[SECURITY] Mask detected: {mask_reason} (confidence: {mask_conf:.2%})")
-                            
-                            cv2.putText(frame, "ACCESS DENIED: Face Covered/Mask Detected", 
-                                       (50, frame.shape[0] // 2), 
-                                       cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0, 255), 2)
-                            cv2.putText(frame, f"Reason: {mask_reason}", 
-                                       (50, frame.shape[0] // 2 + 40), 
-                                       cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 0, 255), 2)
-                            
-                            log_access_event("MASK_DETECTED", reason=mask_reason)
-                            self.last_event_text = f"Last: DENIED - Mask detected"
-                            self.last_access_time = current_time
-                            return frame
+                    has_mask = occlusion_result
+                    mask_confidence = 1.0 if has_mask else 0.0
+                
+                # Only block if HIGH confidence mask detected
+                if has_mask and mask_confidence > config.MASK_CONFIDENCE_THRESHOLD:
+                    reason = f"Mask detected ({mask_confidence:.1%})"
+                    if config.DEBUG_MODE:
+                        print(f"  ✗ {reason}")
+                    self._draw_status(display_frame, f"ACCESS DENIED: {reason}", (0, 0, 255))
+                    return display_frame
+                elif has_mask:
+                    if config.DEBUG_MODE:
+                        print(f"  ⚠ Possible mask ({mask_confidence:.1%}), allowing (below threshold)")
+                else:
+                    if config.DEBUG_MODE:
+                        print(f"  ✓ No mask detected")
                     
-                    # Check 2: Eye State
-                    if config.ENABLE_EYE_STATE_CHECK and self.eye_detector is not None:
-                        eyes_open, left_ear, right_ear, eye_reason = self.eye_detector.are_eyes_open(landmarks)
-                        
-                        if not eyes_open:
-                            if config.DEBUG_MODE:
-                                print(f"[VALIDATION] Eyes not open: {eye_reason}")
-                            
-                            cv2.putText(frame, "ACCESS DENIED: Eyes Must Be Open", 
-                                       (50, frame.shape[0] // 2), 
-                                       cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0, 255), 2)
-                            cv2.putText(frame, f"{eye_reason}", 
-                                       (50, frame.shape[0] // 2 + 40), 
-                                       cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 0, 255), 2)
-                            
-                            log_access_event("EYES_CLOSED", reason=eye_reason)
-                            self.last_event_text = f"Last: DENIED - Eyes closed"
-                            self.last_access_time = current_time
-                            return frame
-                        
-                        # Check for eye occlusion (sunglasses)
-                        eyes_occluded, occl_conf, occl_reason = self.eye_detector.detect_eye_occlusion(face, landmarks)
-                        
-                        if eyes_occluded:
-                            if config.DEBUG_MODE:
-                                print(f"[SECURITY] Eyes occluded: {occl_reason}")
-                            
-                            cv2.putText(frame, "ACCESS DENIED: Eyes Occluded", 
-                                       (50, frame.shape[0] // 2), 
-                                       cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0, 255), 2)
-                            cv2.putText(frame, f"{occl_reason}", 
-                                       (50, frame.shape[0] // 2 + 40), 
-                                       cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 0, 255), 2)
-                            
-                            log_access_event("EYES_OCCLUDED", reason=occl_reason)
-                            self.last_event_text = f"Last: DENIED - Eyes occluded"
-                            self.last_access_time = current_time
-                            return frame
-                
-                # Step 3: Face Alignment
-                if self.face_aligner is not None and landmarks:
-                    face = self.face_aligner.align_face(face, landmarks)
-                
-                # Step 4: Generate Embedding
+            except Exception as e:
                 if config.DEBUG_MODE:
-                    print(f"[DEBUG] Generating embedding from preprocessed face...")
+                    print(f"  ⚠ Occlusion check failed: {e}, continuing...")
+        
+        # ============================================
+        # STAGE 4: ADVANCED PREPROCESSING
+        # ============================================
+        if self.advanced_preprocessor:
+            if config.DEBUG_MODE:
+                print(f"[STAGE 4] Advanced Preprocessing (mode: {config.PREPROCESSING_MODE})...")
+            
+            try:
+                face = self.advanced_preprocessor.process(face, mode=config.PREPROCESSING_MODE)
                 
-                # Use preprocessed face for embedding
-                # For InsightFace, try to use face_object for better performance
-                if hasattr(self.recognizer, '__class__') and 'InsightFace' in self.recognizer.__class__.__name__:
-                    face_object = detection.get('face_object', None)
-                    if face_object is not None:
-                        embedding = self.recognizer.get_embedding(face_object=face_object)
-                    else:
-                        embedding = self.recognizer.get_embedding(face)
-                else:
-                    embedding = self.recognizer.get_embedding(face)
-                
-                # Step 5: Enhanced Matching
                 if config.DEBUG_MODE:
-                    print(f"[DEBUG] Searching database for match...")
+                    print(f"  ✓ Preprocessing applied")
+            except Exception as e:
+                if config.DEBUG_MODE:
+                    print(f"  ⚠ Preprocessing failed: {e}, using original")
+        
+        # ============================================
+        # STAGE 5: FACE ALIGNMENT
+        # ============================================
+        if config.DEBUG_MODE:
+            print("[STAGE 5] Face Alignment...")
+        
+        if 'keypoints' in det and det['keypoints']:
+            try:
+                face = self.aligner.align_face(face, det['keypoints'])
+                if config.DEBUG_MODE:
+                    print(f"  ✓ Face aligned")
+            except Exception as e:
+                if config.DEBUG_MODE:
+                    print(f"  ⚠ Alignment failed: {e}, using resize")
+                face = cv2.resize(face, config.FACE_SIZE)
+        else:
+            face = cv2.resize(face, config.FACE_SIZE)
+        
+        # ============================================
+        # STAGE 6: MULTI-SAMPLE EMBEDDING GENERATION
+        # ============================================
+        if config.DEBUG_MODE:
+            print("[STAGE 6] Embedding Generation...")
+        
+        try:
+            if self.multi_embedder:
+                if config.DEBUG_MODE:
+                    print(f"  Generating {config.NUM_EMBEDDING_SAMPLES} sample embeddings...")
                 
-                if config.USE_KNN_MATCHING and hasattr(self.db_manager, 'find_match_advanced'):
-                    matched_name, distance, confidence = self.db_manager.find_match_advanced(
-                        embedding, self.recognizer
-                    )
-                else:
-                    matched_name, distance = self.db_manager.find_match(
-                        embedding, self.recognizer
-                    )
-                    confidence = 1.0 - (distance / self.recognition_threshold) if matched_name else 0.0
+                embedding = self.multi_embedder.generate_robust_embedding(
+                    face, 
+                    num_samples=config.NUM_EMBEDDING_SAMPLES
+                )
+                
+                if config.DEBUG_MODE:
+                    print(f"  ✓ Multi-sample embedding generated")
+            else:
+                embedding = self.recognizer.get_embedding(face)
+                if config.DEBUG_MODE:
+                    print(f"  ✓ Single embedding generated")
+        except Exception as e:
+            if config.DEBUG_MODE:
+                print(f"  ⚠ Embedding generation failed: {e}, using single")
+            embedding = self.recognizer.get_embedding(face)
+        
+        # ============================================
+        # STAGE 7: ADAPTIVE DATABASE MATCHING
+        # ============================================
+        if config.DEBUG_MODE:
+            print("[STAGE 7] Database Matching...")
+        
+        try:
+            if self.threshold_manager:
+                # Use adaptive thresholds
+                matched_name, distance, threshold = self._adaptive_match(embedding)
                 
                 if config.DEBUG_MODE:
                     if matched_name:
-                        print(f"[DEBUG] Best match: {matched_name}, Distance: {distance:.4f}, Confidence: {confidence:.2%}, Threshold: {self.recognition_threshold}")
+                        print(f"  ✓ Match: {matched_name}")
+                        print(f"    Distance: {distance:.4f}")
+                        print(f"    User threshold: {threshold:.4f}")
                     else:
-                        dist_str = f"{distance:.4f}" if distance is not None else "N/A"
-                        print(f"[DEBUG] Best match: None, Distance: {dist_str}, Threshold: {self.recognition_threshold}")
+                        print(f"  ✗ No match (best distance: {distance:.4f})")
+            else:
+                # Standard matching
+                matched_name, distance = self.db_manager.find_match(embedding, self.recognizer)
+                threshold = config.DEFAULT_RECOGNITION_THRESHOLD
                 
-                # CRITICAL: Step 6 - Explicit unknown check
-                if matched_name is None:
-                    # Unknown person - REJECT immediately
-                    if config.DEBUG_MODE:
-                        dist_str = f"{distance:.4f}" if distance != float('inf') else "inf"
-                        print(f"[SECURITY] Unknown person detected! Best distance: {dist_str}, Threshold: {self.recognition_threshold}")
-                    
-                    # Save unknown face for security review
-                    photo_filename = None
-                    if config.SAVE_UNKNOWN_FACES:
-                        timestamp = time.strftime("%Y%m%d_%H%M%S")
-                        photo_filename = f"unknown_{timestamp}_{self.unknown_face_counter}.jpg"
-                        save_unknown_face(face, self.unknown_face_counter)
-                        self.unknown_face_counter += 1
-                    
-                    # Display ACCESS DENIED
-                    display_access_denied(frame)
-                    
-                    # Log access event with details
-                    log_access_event("UNKNOWN", distance=distance, photo_filename=photo_filename)
-                    
-                    # Update last event
-                    dist_str = f"{distance:.4f}" if distance != float('inf') else "N/A"
-                    self.last_event_text = f"Last: DENIED - Unknown (dist: {dist_str})"
-                    self.last_access_time = current_time
-                    
-                    return frame  # Exit immediately - no access!
-                
-                # Step 7: Known person - check confidence
                 if config.DEBUG_MODE:
-                    print(f"[DEBUG] Match: {matched_name}, Distance: {distance:.4f}, Confidence: {confidence:.2%}, Threshold: {self.recognition_threshold}")
-                
-                # Step 8: Confidence check
-                if confidence >= config.MIN_MATCH_CONFIDENCE:
-                    # ACCESS GRANTED
-                    print(f"[SUCCESS] Access Granted: {matched_name} (distance: {distance:.4f}, confidence: {confidence:.2%})")
-                    self.last_access_person = matched_name
-                    self.last_access_time = current_time
-                    self.last_event_text = f"Last: GRANTED - {matched_name} ({confidence:.0%} confidence)"
-                    
-                    # Display granted message
-                    display_access_granted(frame, matched_name)
-                    
-                    # Log access event
-                    log_access_event(matched_name, "GRANTED", confidence=confidence, distance=distance)
+                    if matched_name:
+                        print(f"  ✓ Match: {matched_name}, Distance: {distance:.4f}")
+                    else:
+                        print(f"  ✗ No match")
+        except Exception as e:
+            if config.DEBUG_MODE:
+                print(f"  ✗ Matching failed: {e}")
+            matched_name = None
+            distance = float('inf')
+            threshold = config.DEFAULT_RECOGNITION_THRESHOLD
+        
+        if not matched_name:
+            self._draw_status(display_frame, "Unknown Person", (0, 0, 255))
+            self._log_access("UNKNOWN", "DENIED", 0.0, distance)
+            return display_frame
+        
+        # ============================================
+        # STAGE 8: ADVANCED LIVENESS DETECTION (UPDATED)
+        # ============================================
+        liveness_score = 1.0  # Default (assume live)
+        
+        if self.liveness_detector:
+            if config.DEBUG_MODE:
+                if config.USE_ADVANCED_LIVENESS:
+                    print("[STAGE 8] Advanced Liveness Detection (6-layer)...")
                 else:
-                    # LOW CONFIDENCE - REJECT
-                    if config.DEBUG_MODE:
-                        print(f"[SECURITY] Low confidence: {confidence:.2%} < {config.MIN_MATCH_CONFIDENCE:.2%}")
-                    
-                    # Display ACCESS DENIED
-                    display_access_denied(frame)
-                    
-                    # Log access event
-                    log_access_event(matched_name, "DENIED - LOW CONFIDENCE", confidence=confidence, distance=distance)
-                    
-                    # Update last event
-                    self.last_event_text = f"Last: DENIED - Low confidence ({confidence:.2%})"
-                    self.last_access_time = current_time
+                    print("[STAGE 8] Simple Liveness Detection...")
             
+            try:
+                is_live, liveness_score, liveness_details = self.liveness_detector.check_liveness(face)
+                
+                if config.DEBUG_MODE:
+                    if config.USE_ADVANCED_LIVENESS and config.SHOW_LIVENESS_BREAKDOWN:
+                        # Show detailed 6-layer breakdown
+                        print(f"\n{self.liveness_detector.explain_decision(liveness_details)}\n")
+                    else:
+                        # Simple summary
+                        print(f"  Liveness: {'LIVE ✅' if is_live else 'FAKE ❌'} ({liveness_score:.1%})")
+                        
+                        if config.USE_ADVANCED_LIVENESS:
+                            # Show component scores
+                            print(f"  Component Scores:")
+                            for component, score in liveness_details['scores'].items():
+                                status = '✅' if score > 0.35 else '⚠️'
+                                print(f"    {component:12} {status} {score:.1%}")
+                            
+                            # Show critical checks
+                            if 'critical_checks' in liveness_details:
+                                print(f"  Critical Checks:")
+                                for check, passed in liveness_details['critical_checks'].items():
+                                    status = '✅ PASS' if passed else '❌ FAIL'
+                                    print(f"    {check.capitalize():12} {status}")
+                
+                if not is_live:
+                    # Get failure reason
+                    if config.USE_ADVANCED_LIVENESS:
+                        reason = liveness_details.get('decision_reason', 'Liveness check failed')
+                        # Shorten reason for display
+                        reason_short = reason[:50] + "..." if len(reason) > 50 else reason
+                    else:
+                        reason_short = f"Liveness check failed ({liveness_score:.1%})"
+                    
+                    self._draw_status(display_frame, f"ACCESS DENIED: {reason_short}", (0, 0, 255))
+                    self._log_access(matched_name, "DENIED - LIVENESS", liveness_score, distance)
+                    
+                    if config.DEBUG_MODE:
+                        print(f"  ❌ DENIED - Reason: {reason if config.USE_ADVANCED_LIVENESS else reason_short}")
+                    
+                    return display_frame
+                else:
+                    if config.DEBUG_MODE:
+                        print(f"  ✅ Liveness check passed")
+                
             except Exception as e:
-                print(f"[ERROR] Failed to process face: {e}")
-                cv2.putText(frame, f"Processing error: {str(e)}", 
-                           (50, frame.shape[0] // 2 - 50), 
-                           cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 255), 2)
+                if config.DEBUG_MODE:
+                    print(f"  ⚠ Liveness check failed: {e}")
+                    import traceback
+                    traceback.print_exc()
+                
+                # Fallback behavior
+                if config.LIVENESS_FALLBACK_ENABLED:
+                    print("  ℹ️  Using fallback: assume live")
+                    liveness_score = 1.0
+                else:
+                    # Fail secure
+                    self._draw_status(display_frame, "ACCESS DENIED: Liveness error", (0, 0, 255))
+                    self._log_access(matched_name, "DENIED - LIVENESS ERROR", 0.0, distance)
+                    return display_frame
+        
+        # ============================================
+        # STAGE 9: INTELLIGENT DECISION ENGINE
+        # ============================================
+        if config.DEBUG_MODE:
+            print("[STAGE 9] Decision Making...")
+        
+        try:
+            if self.decision_engine:
+                # Use intelligent decision engine
+                decision, overall_score, details = self.decision_engine.make_decision(
+                    match_result=(matched_name, distance, threshold),
+                    quality_score=quality_score,
+                    liveness_score=liveness_score,
+                    temporal_confidence=1.0
+                )
+                
+                if config.DEBUG_MODE:
+                    print(f"\n{self.decision_engine.explain_decision(details)}\n")
+                
+                # Execute decision
+                if decision == 'GRANT':
+                    self._draw_access_granted(display_frame, matched_name, overall_score)
+                    self._log_access(matched_name, "GRANTED", overall_score, distance)
+                    self.successful_grants += 1
+                    
+                    # Update adaptive threshold (online learning)
+                    if self.threshold_manager:
+                        self.threshold_manager.update_threshold(matched_name, distance)
+                    
+                elif decision == 'MFA_REQUIRED':
+                    self._draw_mfa_required(display_frame, matched_name, overall_score)
+                    self._log_access(matched_name, "MFA_REQUIRED", overall_score, distance)
+                    
+                else:  # DENY
+                    reason = details.get('reason', 'Insufficient confidence')
+                    self._draw_status(display_frame, f"ACCESS DENIED: {reason}", (0, 0, 255))
+                    self._log_access(matched_name, f"DENIED - {reason}", overall_score, distance)
+            
+            else:
+                # Simple confidence check
+                base_confidence = 1.0 - (distance / threshold)
+                
+                if config.DEBUG_MODE:
+                    print(f"  Confidence: {base_confidence:.2%}")
+                    print(f"  Threshold: {config.MIN_MATCH_CONFIDENCE:.2%}")
+                
+                if base_confidence >= config.MIN_MATCH_CONFIDENCE:
+                    self._draw_access_granted(display_frame, matched_name, base_confidence)
+                    self._log_access(matched_name, "GRANTED", base_confidence, distance)
+                    self.successful_grants += 1
+                else:
+                    reason = f"Low confidence: {base_confidence:.1%}"
+                    self._draw_status(display_frame, f"ACCESS DENIED: {reason}", (0, 0, 255))
+                    self._log_access(matched_name, f"DENIED - {reason}", base_confidence, distance)
         
         except Exception as e:
-            print(f"[ERROR] Frame processing error: {e}")
-            cv2.putText(frame, f"Detection error: {str(e)}", 
-                       (50, frame.shape[0] // 2 - 50), 
-                       cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 255), 2)
-        
-        return frame
-    
-    def _display_quality_feedback(self, frame, quality_result, quality_score):
-        """Display quality feedback on frame"""
-        y_offset = 100
-        for check_name, result in quality_result.items():
-            status = "✓" if result['passed'] else "✗"
-            color = (0, 255, 0) if result['passed'] else (0, 0, 255)
-            text = f"{status} {check_name}: {result.get('value', 'N/A')}"
-            cv2.putText(frame, text, (10, y_offset), cv2.FONT_HERSHEY_SIMPLEX, 
-                       0.5, color, 1)
-            y_offset += 25
-        
-        # Overall score
-        score_text = f"Quality Score: {quality_score:.1f}/100"
-        score_color = (0, 255, 0) if quality_score >= config.OVERALL_QUALITY_THRESHOLD else (0, 165, 255)
-        cv2.putText(frame, score_text, (10, y_offset), cv2.FONT_HERSHEY_SIMPLEX, 
-                   0.6, score_color, 2)
-    
-    def _display_spoof_warning(self, frame):
-        """Display spoofing warning on frame"""
-        text = "SPOOFING ATTEMPT DETECTED"
-        cv2.putText(frame, text, (50, frame.shape[0] // 2), 
-                   cv2.FONT_HERSHEY_SIMPLEX, 1.0, (0, 0, 255), 3)
-    
-    def run(self, camera_index=None):
-        """
-        Run the facial recognition system in on-click mode
-        
-        Args:
-            camera_index: Camera device index (default from config)
-        """
-        if camera_index is None:
-            camera_index = config.CAMERA_INDEX
-        
-        reconnect_attempts = 0
-        
-        while True:  # Main loop for camera reconnection
-            try:
-                print(f"[INFO] Opening camera (index: {camera_index})...")
-                cap = cv2.VideoCapture(camera_index)
-                
-                if not cap.isOpened():
-                    print("[ERROR] Could not open camera")
-                    if config.AUTO_RECONNECT_CAMERA and reconnect_attempts < config.MAX_RECONNECT_ATTEMPTS:
-                        reconnect_attempts += 1
-                        print(f"[INFO] Attempting to reconnect ({reconnect_attempts}/{config.MAX_RECONNECT_ATTEMPTS})...")
-                        time.sleep(2)
-                        continue
-                    else:
-                        print("[ERROR] Maximum reconnection attempts reached. Exiting.")
-                        return
-                
-                # Camera opened successfully
-                reconnect_attempts = 0
-                
-                # Set camera properties
-                cap.set(cv2.CAP_PROP_FRAME_WIDTH, config.FRAME_WIDTH)
-                cap.set(cv2.CAP_PROP_FRAME_HEIGHT, config.FRAME_HEIGHT)
-                cap.set(cv2.CAP_PROP_FPS, config.FPS)
-                
-                print("[INFO] Camera opened successfully")
-                print("[INFO] System running in ON-CLICK mode")
-                print("[INFO] Press SPACE to capture and verify")
-                print("[INFO] Press 'q' to quit")
-                print("[INFO] Access events will be logged to:", config.LOG_FILE_PATH)
-                print()
-                
-                # FPS calculation
-                fps = 0
-                frame_count = 0
-                start_time = time.time()
-                
-                while True:
-                    try:
-                        ret, frame = cap.read()
-                        
-                        if not ret:
-                            print("[ERROR] Failed to read frame from camera")
-                            if config.AUTO_RECONNECT_CAMERA:
-                                print("[INFO] Camera disconnected. Attempting to reconnect...")
-                                break  # Break inner loop to reconnect
-                            else:
-                                return
-                        
-                        # Calculate FPS
-                        frame_count += 1
-                        elapsed_time = time.time() - start_time
-                        if elapsed_time > 1.0:
-                            fps = frame_count / elapsed_time
-                            frame_count = 0
-                            start_time = time.time()
-                        
-                        # Display system status with capture prompt
-                        display_frame = frame.copy()
-                        uptime = time.time() - self.system_start_time
-                        display_system_status(display_frame, fps, uptime, self.last_event_text)
-                        
-                        # Show "Press SPACE to capture" message
-                        cv2.putText(display_frame, "Press SPACE to capture and verify", 
-                                   (50, display_frame.shape[0] // 2), 
-                                   cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255, 255, 255), 2)
-                        
-                        # Show frame
-                        cv2.imshow('Security Door Access Control System', display_frame)
-                        
-                        # Wait for key press
-                        key = cv2.waitKey(1) & 0xFF
-                        
-                        # Check for quit command
-                        if key == ord('q'):
-                            print("\n[INFO] Shutting down system...")
-                            cap.release()
-                            cv2.destroyAllWindows()
-                            print("[INFO] System shutdown complete")
-                            return
-                        
-                        # Check for capture command (SPACE key)
-                        elif key == ord(' '):
-                            print("\n[INFO] Capture triggered! Processing image...")
-                            
-                            # Process the captured frame
-                            try:
-                                processed_frame = self.process_frame(frame)
-                                
-                                # Display the result for a few seconds
-                                display_system_status(processed_frame, fps, uptime, self.last_event_text)
-                                cv2.imshow('Security Door Access Control System', processed_frame)
-                                cv2.waitKey(config.ACCESS_RESULT_DISPLAY_TIME * 1000)  # Show result for configured time
-                                
-                                # Reset last event text after showing result
-                                self.last_event_text = ""
-                                
-                            except Exception as e:
-                                print(f"[ERROR] Frame processing failed: {e}")
-                    
-                    except Exception as e:
-                        print(f"[ERROR] Unexpected error in main loop: {e}")
-                        # Don't crash - continue processing
-                        time.sleep(0.1)
-                        continue
-                
-                # If we get here, we need to reconnect
-                cap.release()
-                cv2.destroyAllWindows()
+            if config.DEBUG_MODE:
+                print(f"  ✗ Decision making failed: {e}")
+                import traceback
+                traceback.print_exc()
             
-            except Exception as e:
-                print(f"[ERROR] Critical error: {e}")
-                if config.AUTO_RECONNECT_CAMERA and reconnect_attempts < config.MAX_RECONNECT_ATTEMPTS:
-                    reconnect_attempts += 1
-                    print(f"[INFO] Recovering... ({reconnect_attempts}/{config.MAX_RECONNECT_ATTEMPTS})")
-                    time.sleep(2)
-                    continue
-                else:
-                    print("[ERROR] System cannot recover. Exiting.")
-                    return
-
-
-def main():
-    """Main function"""
-    parser = argparse.ArgumentParser(
-        description='On-Click Facial Recognition System with 100% Confidence Requirement'
-    )
-    parser.add_argument(
-        '--camera',
-        type=int,
-        default=None,
-        help='Camera device index (default: 0)'
-    )
+            # Fallback simple check
+            base_confidence = 1.0 - (distance / threshold)
+            if base_confidence >= config.MIN_MATCH_CONFIDENCE:
+                self._draw_access_granted(display_frame, matched_name, base_confidence)
+                self._log_access(matched_name, "GRANTED", base_confidence, distance)
+                self.successful_grants += 1
+            else:
+                self._draw_status(display_frame, "Error in decision engine", (0, 0, 255))
+        
+        self.total_attempts += 1
+        
+        return display_frame
     
-    args = parser.parse_args()
+    def _adaptive_match(self, embedding):
+        """
+        Match against database using adaptive thresholds
+        
+        Returns:
+            (matched_name, distance, threshold)
+        """
+        best_match = None
+        best_distance = float('inf')
+        best_threshold = config.DEFAULT_RECOGNITION_THRESHOLD
+        
+        users = self.db_manager.get_all_users()
+        
+        for user in users:
+            user_embeddings = self.db_manager.get_user_embeddings(user)
+            user_threshold = self.threshold_manager.get_threshold(user)
+            
+            for user_emb in user_embeddings:
+                dist = np.linalg.norm(embedding - user_emb)
+                
+                # Check if within user's threshold AND better than current best
+                if dist < user_threshold and dist < best_distance:
+                    best_distance = dist
+                    best_match = user
+                    best_threshold = user_threshold
+        
+        return best_match, best_distance, best_threshold
     
-    # Create and run system
-    system = FacialRecognitionSystem()
-    system.run(camera_index=args.camera)
+    def _draw_access_granted(self, frame, name, confidence):
+        """Draw access granted message"""
+        h, w = frame.shape[:2]
+        
+        # Green overlay
+        overlay = frame.copy()
+        cv2.rectangle(overlay, (0, 0), (w, h), (0, 255, 0), -1)
+        cv2.addWeighted(overlay, 0.2, frame, 0.8, 0, frame)
+        
+        # Message
+        cv2.putText(frame, "ACCESS GRANTED", 
+                   (w//2 - 200, h//2 - 50),
+                   cv2.FONT_HERSHEY_SIMPLEX, 1.2, (0, 255, 0), 3)
+        
+        cv2.putText(frame, f"Welcome, {name}!", 
+                   (w//2 - 150, h//2 + 20),
+                   cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 255, 0), 2)
+        
+        cv2.putText(frame, f"Confidence: {confidence:.1%}", 
+                   (w//2 - 120, h//2 + 60),
+                   cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 0), 2)
+    
+    def _draw_status(self, frame, message, color):
+        """Draw status message"""
+        h, w = frame.shape[:2]
+        
+        # Background
+        overlay = frame.copy()
+        cv2.rectangle(overlay, (10, 10), (w-10, 80), (0, 0, 0), -1)
+        cv2.addWeighted(overlay, 0.6, frame, 0.4, 0, frame)
+        
+        # Text
+        cv2.putText(frame, message, (20, 50),
+                   cv2.FONT_HERSHEY_SIMPLEX, 0.7, color, 2)
+    
+    def _draw_mfa_required(self, frame, name, confidence):
+        """Draw MFA required message"""
+        h, w = frame.shape[:2]
+        
+        # Orange overlay
+        overlay = frame.copy()
+        cv2.rectangle(overlay, (0, 0), (w, h), (0, 165, 255), -1)
+        cv2.addWeighted(overlay, 0.2, frame, 0.8, 0, frame)
+        
+        # Message
+        cv2.putText(frame, "MFA REQUIRED", 
+                   (w//2 - 150, h//2 - 50),
+                   cv2.FONT_HERSHEY_SIMPLEX, 1.0, (0, 165, 255), 3)
+        
+        cv2.putText(frame, f"User: {name}", 
+                   (w//2 - 100, h//2 + 20),
+                   cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 165, 255), 2)
+        
+        cv2.putText(frame, f"Confidence: {confidence:.1%}", 
+                   (w//2 - 120, h//2 + 60),
+                   cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 165, 255), 2)
+    
+    def _draw_brightness_indicator(self, frame):
+        """Draw brightness indicator bar"""
+        if not self.lighting_adjuster or not config.SHOW_BRIGHTNESS_INDICATOR:
+            return
+        
+        brightness_info = self.lighting_adjuster.get_brightness_info(frame)
+        brightness = brightness_info['mean']
+        
+        h, w = frame.shape[:2]
+        
+        # Brightness bar position
+        bar_x = w - 50
+        bar_y = 50
+        bar_h = 200
+        bar_w = 30
+        
+        # Background
+        cv2.rectangle(frame, (bar_x, bar_y), (bar_x + bar_w, bar_y + bar_h), 
+                     (0, 0, 0), -1)
+        
+        # Fill based on brightness (0-255 mapped to bar height)
+        fill_h = int((brightness / 255.0) * bar_h)
+        fill_y = bar_y + bar_h - fill_h
+        
+        # Color based on brightness
+        if brightness < 80:
+            color = (0, 0, 255)  # Red - too dark
+        elif brightness > 180:
+            color = (0, 165, 255)  # Orange - too bright
+        else:
+            color = (0, 255, 0)  # Green - good
+        
+        cv2.rectangle(frame, (bar_x, fill_y), (bar_x + bar_w, bar_y + bar_h), 
+                     color, -1)
+        
+        # Target line (128)
+        target_y = bar_y + bar_h - int((config.TARGET_BRIGHTNESS / 255.0) * bar_h)
+        cv2.line(frame, (bar_x - 5, target_y), (bar_x + bar_w + 5, target_y), 
+                (255, 255, 255), 2)
+        
+        # Text
+        cv2.putText(frame, f"{brightness:.0f}", (bar_x - 15, bar_y - 10),
+                   cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1)
+        
+        cv2.putText(frame, "Brightness", (bar_x - 40, bar_y + bar_h + 20),
+                   cv2.FONT_HERSHEY_SIMPLEX, 0.4, (255, 255, 255), 1)
+    
+    def _log_access(self, user, result, confidence, distance):
+        """Log access attempt"""
+        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        
+        log_entry = f"[{timestamp}] {result} - User: {user}, Confidence: {confidence:.2%}, Distance: {distance:.4f}\n"
+        
+        try:
+            with open(config.ACCESS_LOG_FILE, 'a') as f:
+                f.write(log_entry)
+        except Exception as e:
+            print(f"[WARNING] Logging failed: {e}")
+        
+        if config.DEBUG_MODE:
+            print(f"[LOG] {log_entry.strip()}")
+    
+    def run(self):
+        """Run the system with adaptive lighting and advanced liveness"""
+        print("[INFO] Starting camera...")
+        
+        cap = cv2.VideoCapture(config.CAMERA_INDEX)
+        
+        if not cap.isOpened():
+            print("[ERROR] Cannot open camera")
+            return
+        
+        # ================================================
+        # CAMERA AUTO SETTINGS
+        # ================================================
+        if config.ENABLE_CAMERA_AUTO_EXPOSURE:
+            cap.set(cv2.CAP_PROP_AUTO_EXPOSURE, 1)
+            print("[INFO] Camera auto exposure enabled")
+        
+        if config.ENABLE_CAMERA_AUTO_WB:
+            cap.set(cv2.CAP_PROP_AUTO_WB, 1)
+            print("[INFO] Camera auto white balance enabled")
+        
+        print("[INFO] Camera opened successfully")
+        
+        # Print controls
+        print("\n" + "="*60)
+        print("KEYBOARD CONTROLS:")
+        print("="*60)
+        print("  SPACE - Process frame and verify")
+        print("  Q     - Quit system")
+        
+        if config.ENABLE_KEYBOARD_CONTROLS and self.lighting_adjuster:
+            print("\n  Lighting Controls:")
+            print("  +/=   - Increase brightness")
+            print("  -/_   - Decrease brightness")
+            print("  A     - Auto lighting mode")
+            print("  B     - Balance lighting mode")
+            print("  N     - No lighting adjustment")
+        
+        print("  D     - Toggle debug mode")
+        print("  I     - Toggle brightness indicator")
+        
+        if config.USE_ADVANCED_LIVENESS:
+            print("  V     - Toggle liveness breakdown view")
+        
+        print("="*60 + "\n")
+        
+        # Gamma adjustment (for keyboard controls)
+        current_gamma = config.DEFAULT_GAMMA
+        
+        while True:
+            ret, frame = cap.read()
+            
+            if not ret:
+                print("[ERROR] Failed to read frame")
+                break
+            
+            # Apply lighting to full frame if enabled
+            if self.lighting_adjuster and config.APPLY_LIGHTING_TO_FULL_FRAME:
+                frame = self.lighting_adjuster.adjust_lighting(frame, mode=self.lighting_mode)
+            
+            # Show live feed
+            display_frame = frame.copy()
+            
+            # Add instructions
+            cv2.putText(display_frame, "Press SPACE to verify", 
+                       (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2)
+            
+            # Show liveness mode
+            if self.liveness_detector:
+                liveness_mode = "Advanced (6-layer)" if config.USE_ADVANCED_LIVENESS else "Simple (3-layer)"
+                cv2.putText(display_frame, f"Liveness: {liveness_mode}", 
+                           (10, 60), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 255), 1)
+            
+            # Show lighting mode
+            if self.lighting_adjuster:
+                cv2.putText(display_frame, f"Lighting: {self.lighting_mode}", 
+                           (10, 85), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 0), 1)
+            
+            # Show stats
+            if self.total_attempts > 0:
+                success_rate = (self.successful_grants / self.total_attempts) * 100
+                stats = f"Attempts: {self.total_attempts} | Success: {success_rate:.1f}%"
+                cv2.putText(display_frame, stats, 
+                           (10, display_frame.shape[0] - 20),
+                           cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1)
+            
+            # Draw brightness indicator
+            if config.SHOW_BRIGHTNESS_INDICATOR:
+                self._draw_brightness_indicator(display_frame)
+            
+            cv2.imshow('Enhanced Face Recognition System', display_frame)
+            
+            key = cv2.waitKey(1) & 0xFF
+            
+            # ================================================
+            # KEYBOARD CONTROLS
+            # ================================================
+            if key == ord(' '):
+                # Process frame
+                print("\n[INFO] 🔍 Processing frame...")
+                try:
+                    result_frame = self.process_frame(frame)
+                    
+                    # Show result for 3 seconds
+                    start_time = time.time()
+                    while time.time() - start_time < 3:
+                        cv2.imshow('Enhanced Face Recognition System', result_frame)
+                        if cv2.waitKey(1) & 0xFF == ord('q'):
+                            break
+                except Exception as e:
+                    print(f"[ERROR] Processing failed: {e}")
+                    import traceback
+                    traceback.print_exc()
+            
+            elif key == ord('q'):
+                print("\n[INFO] Shutting down...")
+                break
+            
+            # Lighting controls
+            elif config.ENABLE_KEYBOARD_CONTROLS and self.lighting_adjuster:
+                if key == ord('+') or key == ord('='):
+                    current_gamma = min(config.MAX_GAMMA, current_gamma + 0.1)
+                    print(f"[LIGHTING] Gamma: {current_gamma:.1f} (brighter)")
+                
+                elif key == ord('-') or key == ord('_'):
+                    current_gamma = max(config.MIN_GAMMA, current_gamma - 0.1)
+                    print(f"[LIGHTING] Gamma: {current_gamma:.1f} (darker)")
+                
+                elif key == ord('a'):
+                    self.lighting_mode = 'auto'
+                    print("[LIGHTING] Auto mode activated")
+                
+                elif key == ord('b'):
+                    self.lighting_mode = 'balance'
+                    print("[LIGHTING] Balance mode activated")
+                
+                elif key == ord('n'):
+                    self.lighting_mode = 'none'
+                    print("[LIGHTING] Adjustment disabled")
+                
+                elif key == ord('d'):
+                    config.DEBUG_MODE = not config.DEBUG_MODE
+                    print(f"[DEBUG] {'Enabled' if config.DEBUG_MODE else 'Disabled'}")
+                
+                elif key == ord('i'):
+                    config.SHOW_BRIGHTNESS_INDICATOR = not config.SHOW_BRIGHTNESS_INDICATOR
+                    print(f"[INDICATOR] {'Shown' if config.SHOW_BRIGHTNESS_INDICATOR else 'Hidden'}")
+                
+                elif key == ord('v') and config.USE_ADVANCED_LIVENESS:
+                    config.SHOW_LIVENESS_BREAKDOWN = not config.SHOW_LIVENESS_BREAKDOWN
+                    print(f"[LIVENESS] Breakdown view: {'Enabled' if config.SHOW_LIVENESS_BREAKDOWN else 'Disabled'}")
+        
+        cap.release()
+        cv2.destroyAllWindows()
+        
+        # Print final stats
+        print("\n" + "="*60)
+        print("FINAL STATISTICS")
+        print("="*60)
+        print(f"Total frames processed: {self.frame_count}")
+        print(f"Total access attempts: {self.total_attempts}")
+        print(f"Successful grants: {self.successful_grants}")
+        if self.total_attempts > 0:
+            print(f"Success rate: {(self.successful_grants/self.total_attempts)*100:.1f}%")
+        print("="*60)
 
 
-if __name__ == '__main__':
-    main()
+if __name__ == "__main__":
+    system = EnhancedFaceRecognitionSystem()
+    system.run()
