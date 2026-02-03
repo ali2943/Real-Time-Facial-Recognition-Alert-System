@@ -26,7 +26,8 @@ from intelligent_decision_engine import IntelligentDecisionEngine
 from simple_liveness_detector import SimpleLivenessDetector
 from advanced_liveness_detector import AdvancedLivenessDetector  # NEW - Multi-layer detection
 from adaptive_lighting_adjuster import AdaptiveLightingAdjuster
-
+from unified_security_system import UnifiedSecuritySystem
+from glasses_detector import GlassesDetector
 import config
 
 
@@ -90,6 +91,21 @@ class EnhancedFaceRecognitionSystem:
             self.decision_engine = None
             print("[INFO] Intelligent decisions: DISABLED")
         
+        # Glasses detector (after occlusion detector)
+        if config.ENABLE_GLASSES_DETECTION:
+            self.glasses_detector = GlassesDetector()
+            print(f"[INFO] Glasses detection: ENABLED ({config.GLASSES_ACTION} mode)")
+        else:
+            self.glasses_detector = None
+            print("[INFO] Glasses detection: DISABLED")
+        
+        # Replace individual liveness detector with unified system
+        if config.USE_ADVANCED_LIVENESS or config.ENABLE_MOTION_LIVENESS or config.ENABLE_CHALLENGE_RESPONSE:
+         self.security_system = UnifiedSecuritySystem()
+         print("[INFO] Using Unified 3-Tier Security System")
+        else:
+          self.security_system = None
+          print("[INFO] Security system: DISABLED")
         # ================================================
         # LIVENESS DETECTOR (UPDATED - Advanced Multi-Layer)
         # ================================================
@@ -377,79 +393,148 @@ class EnhancedFaceRecognitionSystem:
             self._log_access("UNKNOWN", "DENIED", 0.0, distance)
             return display_frame
         
-        # ============================================
-        # STAGE 8: ADVANCED LIVENESS DETECTION (UPDATED)
-        # ============================================
-        liveness_score = 1.0  # Default (assume live)
-        
+        # STAGE 8: ADVANCED LIVENESS DETECTION
         if self.liveness_detector:
             if config.DEBUG_MODE:
-                if config.USE_ADVANCED_LIVENESS:
-                    print("[STAGE 8] Advanced Liveness Detection (6-layer)...")
-                else:
-                    print("[STAGE 8] Simple Liveness Detection...")
-            
+               liveness_type = "Advanced (6-layer)" if getattr(config, 'USE_ADVANCED_LIVENESS', False) else "Simple"
+               print(f"[STAGE 8] {liveness_type} Liveness Detection...")
+    
             try:
                 is_live, liveness_score, liveness_details = self.liveness_detector.check_liveness(face)
-                
+        
                 if config.DEBUG_MODE:
-                    if config.USE_ADVANCED_LIVENESS and config.SHOW_LIVENESS_BREAKDOWN:
-                        # Show detailed 6-layer breakdown
-                        print(f"\n{self.liveness_detector.explain_decision(liveness_details)}\n")
-                    else:
-                        # Simple summary
-                        print(f"  Liveness: {'LIVE ✅' if is_live else 'FAKE ❌'} ({liveness_score:.1%})")
-                        
-                        if config.USE_ADVANCED_LIVENESS:
-                            # Show component scores
-                            print(f"  Component Scores:")
-                            for component, score in liveness_details['scores'].items():
-                                status = '✅' if score > 0.35 else '⚠️'
-                                print(f"    {component:12} {status} {score:.1%}")
-                            
-                            # Show critical checks
-                            if 'critical_checks' in liveness_details:
-                                print(f"  Critical Checks:")
-                                for check, passed in liveness_details['critical_checks'].items():
-                                    status = '✅ PASS' if passed else '❌ FAIL'
-                                    print(f"    {check.capitalize():12} {status}")
+                # Safe checks for config attributes
+                    use_advanced = getattr(config, 'USE_ADVANCED_LIVENESS', False)
+                    show_breakdown = getattr(config, 'SHOW_LIVENESS_BREAKDOWN', False)
+            
+                if use_advanced and show_breakdown:
+                # Show detailed breakdown
+                    print(f"\n{self.liveness_detector.explain_decision(liveness_details)}\n")
+                else:
+                # Simple summary
+                    print(f"  Liveness: {'LIVE ✅' if is_live else 'FAKE ❌'} ({liveness_score:.1%})")
                 
+                    if use_advanced and 'scores' in liveness_details:
+                        print(f"  Component Scores:")
+                        for component, score in liveness_details.get('scores', {}).items():
+                            status = '✅' if score > 0.35 else '⚠️'
+                            print(f"    {component:12} {status} {score:.1%}")
+                
+                # Show critical checks if available
+                    if 'critical_checks' in liveness_details:
+                        critical_passed = sum(liveness_details['critical_checks'].values())
+                        critical_total = len(liveness_details['critical_checks'])
+                        print(f"  Critical Checks: {critical_passed}/{critical_total} passed")
+        
                 if not is_live:
-                    # Get failure reason
-                    if config.USE_ADVANCED_LIVENESS:
-                        reason = liveness_details.get('decision_reason', 'Liveness check failed')
-                        # Shorten reason for display
-                        reason_short = reason[:50] + "..." if len(reason) > 50 else reason
-                    else:
-                        reason_short = f"Liveness check failed ({liveness_score:.1%})"
-                    
+                    reason = liveness_details.get('decision_reason', f"Liveness failed ({liveness_score:.1%})")
+                    reason_short = reason[:50] + "..." if len(reason) > 50 else reason
+            
                     self._draw_status(display_frame, f"ACCESS DENIED: {reason_short}", (0, 0, 255))
                     self._log_access(matched_name, "DENIED - LIVENESS", liveness_score, distance)
-                    
+            
                     if config.DEBUG_MODE:
-                        print(f"  ❌ DENIED - Reason: {reason if config.USE_ADVANCED_LIVENESS else reason_short}")
-                    
+                        print(f"  ❌ DENIED - {reason}")
+            
                     return display_frame
                 else:
                     if config.DEBUG_MODE:
                         print(f"  ✅ Liveness check passed")
-                
+    
             except Exception as e:
                 if config.DEBUG_MODE:
                     print(f"  ⚠ Liveness check failed: {e}")
                     import traceback
                     traceback.print_exc()
-                
-                # Fallback behavior
-                if config.LIVENESS_FALLBACK_ENABLED:
+        
+        # Fallback behavior (check if config exists)
+                fallback_enabled = getattr(config, 'LIVENESS_FALLBACK_ENABLED', False)
+        
+                if fallback_enabled:
                     print("  ℹ️  Using fallback: assume live")
                     liveness_score = 1.0
                 else:
-                    # Fail secure
+            # Fail secure (default)
+                    print("  ❌ Failing secure: rejecting due to liveness error")
                     self._draw_status(display_frame, "ACCESS DENIED: Liveness error", (0, 0, 255))
                     self._log_access(matched_name, "DENIED - LIVENESS ERROR", 0.0, distance)
                     return display_frame
+
+        else:
+            liveness_score = 1.0
+        # ============================================
+        # STAGE 8: UNIFIED SECURITY CHECK (3-TIER)
+        # ============================================
+            if self.security_system:
+                if config.DEBUG_MODE:
+                    print("[STAGE 8] Unified Security Check (3-Tier)...")
+    
+            try:
+                # Run all security tiers
+                is_secure, security_score, security_results = self.security_system.check_security(
+                        face, 
+                     embedding=embedding,
+                    debug=config.DEBUG_MODE
+                 )
         
+                # Get status message
+                status_msg = self.security_system.get_status_message(security_results)
+        
+                if is_secure is None:
+                    # Still analyzing (motion collection or challenge in progress)
+                    if config.DEBUG_MODE:
+                        print(f"  ℹ️  {status_msg}")
+            
+                    # Show status on frame
+                    self._draw_status(display_frame, status_msg, (0, 255, 255))
+                    return display_frame
+        
+                elif is_secure:
+                    # All security checks passed
+                    if config.DEBUG_MODE:
+                        print(f"  ✅ Security checks PASSED ({security_score:.1%})")
+            
+                    # Continue to decision engine (use security_score as liveness_score)
+                    liveness_score = security_score
+        
+                else:
+                     # Security check failed
+                    reason = security_results.get('reason', 'Security check failed')
+            
+                    if config.DEBUG_MODE:
+                       print(f"  ❌ Security FAILED - {reason}")
+                
+                        # Show which tier failed
+                       if security_results.get('tier1') and not security_results['tier1'].get('passed'):
+                            print(f"     Tier 1 (Advanced Liveness): FAILED")
+                       if security_results.get('tier2') and not security_results['tier2'].get('passed'):
+                            print(f"     Tier 2 (Motion): FAILED")
+                       if security_results.get('tier3') and not security_results['tier3'].get('passed'):
+                            print(f"     Tier 3 (Challenge): FAILED")
+            
+                 # Deny access
+                    self._draw_status(display_frame, f"ACCESS DENIED: {reason}", (0, 0, 255))
+                    self._log_access(matched_name, f"DENIED - {reason}", security_score, distance)
+            
+                    # Reset security system for next attempt
+                    self.security_system.reset()
+            
+                    return display_frame
+    
+            except Exception as e:
+                if config.DEBUG_MODE:
+                    print(f"  ⚠ Security check failed: {e}")
+                    import traceback
+                    traceback.print_exc()
+        
+                # Fail secure (deny access on error)
+                self._draw_status(display_frame, "ACCESS DENIED: Security error", (0, 0, 255))
+                self._log_access(matched_name, "DENIED - SECURITY ERROR", 0.0, distance)
+                return display_frame
+
+            else:
+            # No security system
+                liveness_score = 1.0
         # ============================================
         # STAGE 9: INTELLIGENT DECISION ENGINE
         # ============================================

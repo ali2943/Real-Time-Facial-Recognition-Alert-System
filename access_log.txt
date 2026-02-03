@@ -323,3 +323,38 @@
 , Confidence: 78.23%, Distance: 0.4577
 [2026-02-03 13:50:32] GRANTED - User: Ali
 , Confidence: 76.86%, Distance: 0.5064
+[2026-02-03 15:53:33] GRANTED - User: Fatima, Confidence: 63.84%, Distance: 0.5601
+[2026-02-03 15:53:38] GRANTED - User: Fatima, Confidence: 72.16%, Distance: 0.4711
+[2026-02-03 15:53:43] GRANTED - User: Fatima, Confidence: 76.82%, Distance: 0.3947
+[2026-02-03 15:53:48] GRANTED - User: Fatima, Confidence: 60.66%, Distance: 0.6066
+[2026-02-03 15:53:54] GRANTED - User: Fatima, Confidence: 73.05%, Distance: 0.4556
+[2026-02-03 15:53:59] GRANTED - User: Fatima, Confidence: 67.91%, Distance: 0.5492
+[2026-02-03 15:54:20] GRANTED - User: Fatima, Confidence: 64.12%, Distance: 0.5996
+[2026-02-03 15:55:09] GRANTED - User: Ali
+, Confidence: 75.71%, Distance: 0.5399
+[2026-02-03 16:32:12] GRANTED - User: Ali
+, Confidence: 77.16%, Distance: 0.5120
+[2026-02-03 16:32:18] GRANTED - User: Ali
+, Confidence: 78.07%, Distance: 0.4308
+[2026-02-03 16:32:23] GRANTED - User: Ali
+, Confidence: 70.74%, Distance: 0.6273
+[2026-02-03 16:32:30] GRANTED - User: Ali
+, Confidence: 78.34%, Distance: 0.4852
+[2026-02-03 16:32:36] DENIED - User: UNKNOWN, Confidence: 0.00%, Distance: inf
+[2026-02-03 16:32:54] DENIED - User: UNKNOWN, Confidence: 0.00%, Distance: inf
+[2026-02-03 16:33:14] GRANTED - User: Ali
+, Confidence: 75.67%, Distance: 0.5480
+[2026-02-03 16:33:31] GRANTED - User: Ali
+, Confidence: 71.35%, Distance: 0.6084
+[2026-02-03 17:14:42] DENIED - LIVENESS ERROR - User: Ali
+, Confidence: 0.00%, Distance: 0.6758
+[2026-02-03 17:14:49] DENIED - LIVENESS ERROR - User: Ali
+, Confidence: 0.00%, Distance: 0.5299
+[2026-02-03 17:26:56] GRANTED - User: Ali
+, Confidence: 73.94%, Distance: 0.5504
+[2026-02-03 17:27:03] GRANTED - User: Ali
+, Confidence: 79.62%, Distance: 0.4133
+[2026-02-03 17:27:25] GRANTED - User: Ali
+, Confidence: 69.12%, Distance: 0.6443
+[2026-02-03 17:27:31] GRANTED - User: Ali
+, Confidence: 71.92%, Distance: 0.5961

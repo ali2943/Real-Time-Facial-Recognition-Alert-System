@@ -218,46 +218,246 @@ DECISION_WEIGHTS = {
 # ============================================
 
 # ============================================
-# ADVANCED LIVENESS DETECTION (COMPLETE)
+# MAXIMUM SECURITY MODE (MAIN DOOR)
+# ============================================
+
+# Advanced Liveness - ULTRA STRICT
+USE_ADVANCED_LIVENESS = True
+ADVANCED_LIVENESS_THRESHOLD = 0.65  # RAISED from 0.60
+
+# Critical check thresholds - ALL RAISED
+TEXTURE_THRESHOLD = 0.50  # From 0.45
+FREQUENCY_THRESHOLD = 0.55  # From 0.50
+COLOR_THRESHOLD = 0.60  # From 0.55
+SHARPNESS_THRESHOLD = 0.50  # From 0.45
+
+# Component weights - Prioritize most reliable
+LIVENESS_WEIGHTS = {
+    'texture': 0.35,      # INCREASED (most reliable)
+    'frequency': 0.30,    # INCREASED (very reliable)
+    'color': 0.05,        # DECREASED (can be fooled)
+    'sharpness': 0.20,    # Same
+    'variance': 0.10,     # Same
+    'skin_tone': 0.00     # DISABLED (unreliable for photos)
+}
+
+# Decision settings - STRICTER
+REQUIRE_CRITICAL_CHECKS = True
+CRITICAL_CHECKS_MINIMUM = 4  # NEW - Require 4 out of 5 checks to pass
+
+# Fail secure - NO fallback
+LIVENESS_FALLBACK_ENABLED = False  # If check fails, DENY access
+
+# Hard limits - Instant rejection
+LIVENESS_HARD_LIMITS = {
+    'texture': 0.35,      # Raised
+    'frequency': 0.40,    # Raised
+    'sharpness': 0.40     # Raised
+}
+# ============================================
+# MAIN DOOR SECURITY - MAXIMUM PROTECTION
+# ============================================
+
+# ==================== TIER 1: Advanced Liveness ====================
+USE_ADVANCED_LIVENESS = True
+ADVANCED_LIVENESS_THRESHOLD = 0.65  # STRICT
+
+# Critical thresholds
+TEXTURE_THRESHOLD = 0.50
+FREQUENCY_THRESHOLD = 0.55
+COLOR_THRESHOLD = 0.60
+SHARPNESS_THRESHOLD = 0.50
+
+# Component weights
+LIVENESS_WEIGHTS = {
+    'texture': 0.35,
+    'frequency': 0.30,
+    'color': 0.05,
+    'sharpness': 0.20,
+    'variance': 0.10,
+    'skin_tone': 0.00
+}
+
+# Strict requirements
+REQUIRE_CRITICAL_CHECKS = True
+CRITICAL_CHECKS_MINIMUM = 4  # Must pass 4 out of 5
+
+# Fail secure
+LIVENESS_FALLBACK_ENABLED = False
+
+# Hard limits
+LIVENESS_HARD_LIMITS = {
+    'texture': 0.35,
+    'frequency': 0.40,
+    'sharpness': 0.40
+}
+
+# ==================== TIER 2: Motion Detection ====================
+ENABLE_MOTION_LIVENESS = True  # NEW - Detects static photos
+
+# Motion settings
+MOTION_BUFFER_SIZE = 15  # Frames to analyze
+MOTION_THRESHOLD = 0.45  # Threshold for detecting motion
+MOTION_MINIMUM_FRAMES = 10  # Min frames before deciding
+
+# Action when no motion detected
+MOTION_FAILURE_ACTION = 'DENY'  # 'DENY' or 'WARN'
+
+# ==================== TIER 3: Challenge-Response ====================
+ENABLE_CHALLENGE_RESPONSE = False  # Set True for max security (slower but unbeatable)
+
+# Challenge settings
+CHALLENGE_TIMEOUT = 5.0  # Seconds to respond
+CHALLENGE_TYPES = ['blink', 'smile']  # Available challenges
+REQUIRE_CHALLENGE_SUCCESS = True  # Must pass challenge
+
+# ==================== COMBINED DECISION ====================
+
+# Security level preset
+SECURITY_LEVEL = 'MAXIMUM'  # 'MAXIMUM', 'HIGH', 'MEDIUM', 'LOW'
+
+# Multi-tier decision
+REQUIRE_ALL_TIERS = True  # All tiers must pass (recommended for main door)
+
+# Individual tier weights (if not requiring all)
+TIER_WEIGHTS = {
+    'advanced_liveness': 0.50,
+    'motion': 0.35,
+    'challenge': 0.15
+}
+
+# Overall threshold (if using weighted combination)
+OVERALL_SECURITY_THRESHOLD = 0.75
+
+# ==================== ANTI-SPOOFING MESSAGES ====================
+PHOTO_DETECTED_MESSAGE = "Photo/Screen detected - Access denied"
+NO_MOTION_MESSAGE = "No movement detected - Access denied"
+CHALLENGE_FAILED_MESSAGE = "Challenge failed - Access denied"
+ANALYZING_MESSAGE = "Analyzing... Please stay still"
+
+# ============================================
+# GLASSES DETECTION
+# ============================================
+
+# Enable glasses detection
+ENABLE_GLASSES_DETECTION = True
+
+# Action when glasses detected
+GLASSES_ACTION = 'WARN'  # 'WARN', 'DENY', or 'IGNORE'
+
+# Detection thresholds
+GLASSES_CONFIDENCE_THRESHOLD = 0.60
+GLASSES_EDGE_THRESHOLD = 0.15
+GLASSES_REFLECTION_THRESHOLD = 200
+
+# Messages
+GLASSES_WARNING_MESSAGE = "Please remove glasses for better recognition"
+GLASSES_DENY_MESSAGE = "Glasses detected - Access denied"
+
+# ============================================
+# MOTION LIVENESS DETECTION
+# ============================================
+
+# Enable motion-based liveness
+ENABLE_MOTION_LIVENESS = True
+
+# Motion settings
+MOTION_BUFFER_SIZE = 15
+MOTION_THRESHOLD = 0.45
+MOTION_MINIMUM_FRAMES = 10
+
+# Action when no motion
+MOTION_FAILURE_ACTION = 'DENY'  # 'DENY' or 'WARN'
+
+# ============================================
+# CHALLENGE-RESPONSE LIVENESS
+# ============================================
+
+# Enable challenge-response (interactive)
+ENABLE_CHALLENGE_RESPONSE = False  # Set True for maximum security (slower)
+
+# Challenge settings
+CHALLENGE_TIMEOUT = 5.0
+CHALLENGE_TYPES = ['blink', 'smile']
+REQUIRE_CHALLENGE_SUCCESS = True
+
+# ============================================
+# UNIFIED SECURITY SYSTEM
+# ============================================
+
+# Security level preset
+SECURITY_LEVEL = 'MAXIMUM'  # 'MAXIMUM', 'HIGH', 'MEDIUM', 'LOW'
+
+# Multi-tier decision
+REQUIRE_ALL_TIERS = True  # All active tiers must pass
+
+# Individual tier weights (if REQUIRE_ALL_TIERS = False)
+TIER_WEIGHTS = {
+    'advanced_liveness': 0.50,
+    'motion': 0.35,
+    'challenge': 0.15
+}
+
+# Overall threshold (weighted mode)
+OVERALL_SECURITY_THRESHOLD = 0.75
+
+# ============================================
+# ANTI-SPOOFING MESSAGES
+# ============================================
+
+PHOTO_DETECTED_MESSAGE = "Photo/Screen detected - Access denied"
+NO_MOTION_MESSAGE = "No movement detected - Access denied"
+CHALLENGE_FAILED_MESSAGE = "Challenge failed - Access denied"
+ANALYZING_MESSAGE = "Analyzing... Please stay still"
+
+# ============================================
+# CRITICAL CHECKS
+# ============================================
+
+# Number of critical checks that must pass
+CRITICAL_CHECKS_MINIMUM = 4  # Out of 5 checks
+
+
+# ============================================
+# ADVANCED LIVENESS DETECTION (UPDATE THIS SECTION)
 # ============================================
 
 # Use advanced multi-layer liveness detector
-USE_ADVANCED_LIVENESS = True  # 6-layer detection (recommended)
+USE_ADVANCED_LIVENESS = True
 
 # Advanced liveness thresholds
-ADVANCED_LIVENESS_THRESHOLD = 0.60  # Overall score threshold (STRICT)
+ADVANCED_LIVENESS_THRESHOLD = 0.65
 
 # Individual check thresholds (critical checks)
-TEXTURE_THRESHOLD = 0.45  # Texture must be above this
-FREQUENCY_THRESHOLD = 0.50  # Frequency content must be above this
-COLOR_THRESHOLD = 0.55  # Color naturalness must be above this
-SHARPNESS_THRESHOLD = 0.45  # NEW - Sharpness check
+TEXTURE_THRESHOLD = 0.50
+FREQUENCY_THRESHOLD = 0.55
+COLOR_THRESHOLD = 0.60
+SHARPNESS_THRESHOLD = 0.50
 
 # Component weights (must sum to 1.0)
 LIVENESS_WEIGHTS = {
-    'texture': 0.30,      # Texture analysis (most reliable)
-    'frequency': 0.25,    # Frequency analysis (very reliable)
-    'color': 0.10,        # Color naturalness (can be fooled)
-    'sharpness': 0.20,    # Edge sharpness (reliable)
-    'variance': 0.10,     # Local variance (moderate)
-    'skin_tone': 0.05     # Skin tone validation (can be fooled)
+    'texture': 0.35,
+    'frequency': 0.30,
+    'color': 0.05,
+    'sharpness': 0.20,
+    'variance': 0.10,
+    'skin_tone': 0.00
 }
 
-# Decision strategy
-REQUIRE_CRITICAL_CHECKS = True  # At least 3 of 4 critical must pass
-SHOW_LIVENESS_BREAKDOWN = True  # Show detailed scores in debug
+# Decision settings
+REQUIRE_CRITICAL_CHECKS = True
+SHOW_LIVENESS_BREAKDOWN = True  # ← ADD THIS LINE
+LIVENESS_FALLBACK_ENABLED = False
 
-# Fallback behavior
-LIVENESS_FALLBACK_ENABLED = False  # Fail secure (reject if liveness check fails)
-
-# Hard limits (instant rejection if below these)
+# Hard limits (instant fail if below)
 LIVENESS_HARD_LIMITS = {
-    'texture': 0.30,
-    'frequency': 0.35,
-    'sharpness': 0.35
+    'texture': 0.35,
+    'frequency': 0.40,
+    'sharpness': 0.40
 }
 
-
+# Critical checks minimum
+CRITICAL_CHECKS_MINIMUM = 4
 # ============================================
 # MATCHING STRATEGY (UPDATED)
 # ============================================
