@@ -4,6 +4,9 @@ __pycache__/
 *$py.class
 *.so
 .Python
+env/
+venv/
+ENV/
 build/
 develop-eggs/
 dist/
@@ -19,14 +22,21 @@ wheels/
 *.egg-info/
 .installed.cfg
 *.egg
-MANIFEST
 
-# Virtual environments
-venv/
-env/
-ENV/
-env.bak/
-venv.bak/
+# Database
+database/*.pkl
+database/embeddings.pkl
+!database/.gitkeep
+
+# Logs
+logs/*.txt
+logs/*.log
+!logs/.gitkeep
+
+# Models
+models/*.h5
+models/*.pb
+!models/.gitkeep
 
 # IDE
 .vscode/
@@ -35,18 +45,15 @@ venv.bak/
 *.swo
 *~
 
-# Project specific
-database/
-unknown_faces/
-*.pkl
-
 # OS
 .DS_Store
 Thumbs.db
 
-# Logs
-*.log
+# Project specific
+unknown_faces/
+learning_data/
+*.pkl
 
-# Camera/Video
-*.avi
-*.mp4
+# Virtual environments (additional)
+env.bak/
+venv.bak/
