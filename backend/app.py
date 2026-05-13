@@ -1,3 +1,4 @@
+import os
 from pathlib import Path
 from flask import Flask, jsonify, request, send_from_directory
 
@@ -51,13 +52,16 @@ def run_query():
                 "intermediate_code": intermediate_code,
                 "optimized_code": optimized_code,
                 "code_generation": code_generation,
-                "final_code": code_generation,
+                "final_code": "\n".join(code_generation),
                 "output": output,
             }
         )
-    except Exception as exc:
+    except ValueError as exc:
         return jsonify({"error": str(exc)}), 400
+    except Exception as exc:
+        app.logger.exception("Unhandled query execution error")
+        return jsonify({"error": "Internal compiler error"}), 500
 
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(debug=os.getenv("FLASK_DEBUG", "0") == "1")

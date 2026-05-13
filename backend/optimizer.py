@@ -1,8 +1,6 @@
-import re
 from typing import List
 
-
-COMPARISON_PATTERN = re.compile(r"^(t\d+) = (.+?)\s(<=|>=|<>|!=|=|<|>)\s(.+)$")
+OPERATORS = ("<=", ">=", "<>", "!=", "=", "<", ">")
 
 
 def optimize(instructions: List[str]) -> List[str]:
@@ -25,11 +23,15 @@ def optimize(instructions: List[str]) -> List[str]:
 
 
 def _constant_fold(instruction: str) -> str:
-    match = COMPARISON_PATTERN.match(instruction)
-    if not match:
+    if " = " not in instruction:
         return instruction
 
-    temp, left, operator, right = match.groups()
+    temp, expression = instruction.split(" = ", 1)
+    comparison = _split_comparison(expression)
+    if comparison is None:
+        return instruction
+
+    left, operator, right = comparison
     left_value = _parse_literal(left)
     right_value = _parse_literal(right)
 
@@ -38,6 +40,17 @@ def _constant_fold(instruction: str) -> str:
 
     result = _eval_comparison(left_value, right_value, operator)
     return f"{temp} = {result}"
+
+
+def _split_comparison(expression: str):
+    expression = expression.strip()
+    for operator in OPERATORS:
+        marker = f" {operator} "
+        if marker not in expression:
+            continue
+        left, right = expression.split(marker, 1)
+        return left.strip(), operator, right.strip()
+    return None
 
 
 def _parse_literal(value: str):
@@ -77,4 +90,7 @@ def _eval_comparison(left, right, operator: str) -> bool:
 
 
 def _is_redundant_self_assignment(instruction: str) -> bool:
-    return bool(re.match(r"^([A-Za-z_]\w*)\s*=\s*\1$", instruction))
+    if "=" not in instruction:
+        return False
+    left, right = instruction.split("=", 1)
+    return left.strip() == right.strip()
