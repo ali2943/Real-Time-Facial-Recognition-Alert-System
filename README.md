@@ -271,6 +271,58 @@ The system logs all access events to `access_log.txt` in the following format:
 
 Contributions are welcome! Please feel free to submit pull requests or open issues.
 
+## 🧪 QueryLite Web (Mini SQL Compiler Demo)
+
+This repository now includes a standalone SQL-compiler demo app with visual compiler phases.
+
+### Structure
+
+```
+frontend/
+  index.html
+  style.css
+  script.js
+
+backend/
+  app.py
+  lexer.py
+  parser.py
+  semantic.py
+  intermediate.py
+  optimizer.py
+  codegen.py
+  executor.py
+```
+
+### Run QueryLite Web
+
+```bash
+pip install flask
+python backend/app.py
+```
+
+Then open: `http://127.0.0.1:5000`
+
+### Supported Statements
+
+- `CREATE TABLE`
+- `INSERT`
+- `SELECT`
+- `UPDATE`
+- `DELETE`
+- `WHERE` with `AND` / `OR`
+
+### Sample Queries
+
+```sql
+CREATE TABLE students (id, name, age);
+INSERT INTO students VALUES (1, 'Alice', 22);
+INSERT INTO students VALUES (2, 'Bob', 19);
+SELECT name FROM students WHERE age > 20;
+UPDATE students SET age = 20 WHERE name = 'Bob';
+DELETE FROM students WHERE age < 20 OR name = 'Unknown';
+```
+
 ## 📄 License
 
 This project is open source and available under the MIT License.

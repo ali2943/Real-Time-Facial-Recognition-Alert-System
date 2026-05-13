@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>QueryLite Web</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header class="header">
+    <h1>QueryLite Web</h1>
+    <p>A Mini SQL Compiler with Visual Compiler Phases</p>
+  </header>
+
+  <main class="workspace">
+    <section class="panel input-panel">
+      <h2>SQL Input</h2>
+      <textarea id="query" spellcheck="false" placeholder="SELECT name FROM students WHERE age > 20;"></textarea>
+      <div class="actions">
+        <button id="runBtn">▶ Run</button>
+        <button id="clearBtn" class="secondary">🧹 Clear</button>
+      </div>
+      <div class="samples">
+        <h3>Sample Queries</h3>
+        <button class="sample" data-query="CREATE TABLE students (id, name, age);">CREATE TABLE</button>
+        <button class="sample" data-query="INSERT INTO students VALUES (1, 'Alice', 22);">INSERT</button>
+        <button class="sample" data-query="SELECT name FROM students WHERE age > 20;">SELECT</button>
+        <button class="sample" data-query="UPDATE students SET age = 23 WHERE name = 'Alice';">UPDATE</button>
+        <button class="sample" data-query="DELETE FROM students WHERE age < 20 OR name = 'Bob';">DELETE</button>
+      </div>
+    </section>
+
+    <section class="panel output-panel">
+      <h2>Compiler Phases</h2>
+      <div id="error" class="card error hidden"></div>
+
+      <div class="grid">
+        <article class="card"><h3>✅ Output</h3><pre id="output"></pre></article>
+        <article class="card"><h3>🔤 Lexical Analysis</h3><div id="lexical" class="tokens"></div></article>
+        <article class="card"><h3>📚 Symbol Table</h3><pre id="symbol_table"></pre></article>
+        <article class="card"><h3>🧠 Semantic Analysis</h3><pre id="semantic"></pre></article>
+        <article class="card"><h3>🧩 Intermediate Code Generation</h3><pre id="intermediate_code"></pre></article>
+        <article class="card"><h3>⚡ Code Optimization</h3><pre id="optimized_code"></pre></article>
+        <article class="card"><h3>⚙️ Code Generation</h3><pre id="code_generation"></pre></article>
+      </div>
+    </section>
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>
