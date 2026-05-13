@@ -145,6 +145,8 @@ class Parser:
         return {"type": "literal", "value": token["value"]}
 
     def _peek(self) -> Dict[str, Any]:
+        if self.index >= len(self.tokens):
+            return {"type": "EOF", "value": "EOF"}
         return self.tokens[self.index]
 
     def _peek_type(self) -> str:
@@ -154,6 +156,8 @@ class Parser:
         return self._peek()["value"]
 
     def _advance(self) -> Dict[str, Any]:
+        if self.index >= len(self.tokens):
+            raise ValueError("Unexpected end of input")
         token = self.tokens[self.index]
         self.index += 1
         return token

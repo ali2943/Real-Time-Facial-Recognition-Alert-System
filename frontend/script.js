@@ -76,7 +76,7 @@ async function runQuery() {
       target.textContent = stringify(data[key]);
     });
   } catch (error) {
-    setError(error.message || 'Unexpected error');
+    setError(error.message || 'Network error or unexpected response from server.');
   } finally {
     runBtn.disabled = false;
     runBtn.textContent = '▶ Run';

@@ -1,3 +1,4 @@
+import re
 from typing import List
 
 OPERATORS = ("<=", ">=", "<>", "!=", "=", "<", ">")
@@ -90,7 +91,5 @@ def _eval_comparison(left, right, operator: str) -> bool:
 
 
 def _is_redundant_self_assignment(instruction: str) -> bool:
-    if "=" not in instruction:
-        return False
-    left, right = instruction.split("=", 1)
-    return left.strip() == right.strip()
+    match = re.match(r"^\s*([A-Za-z_]\w*)\s*=\s*([A-Za-z_]\w*)\s*$", instruction)
+    return bool(match and match.group(1) == match.group(2))

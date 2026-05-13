@@ -55,10 +55,10 @@ class SemanticAnalyzer:
             if column not in table_columns:
                 raise ValueError(f"Semantic error: column '{column}' not found")
 
-    def _validate_where(self, where_expr: Dict[str, Any] | None, table_columns: List[str]) -> None:
-        if not where_expr:
+    def _validate_where(self, where_clause: Dict[str, Any] | None, table_columns: List[str]) -> None:
+        if not where_clause:
             return
-        self._validate_expression(where_expr, table_columns)
+        self._validate_expression(where_clause, table_columns)
 
     def _validate_expression(self, expr: Dict[str, Any], table_columns: List[str]) -> None:
         expr_type = expr["type"]

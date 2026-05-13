@@ -1,4 +1,3 @@
-import os
 from pathlib import Path
 from flask import Flask, jsonify, request, send_from_directory
 
@@ -56,12 +55,12 @@ def run_query():
                 "output": output,
             }
         )
-    except ValueError as exc:
-        return jsonify({"error": str(exc)}), 400
+    except ValueError:
+        return jsonify({"error": "Invalid query or semantic constraint violation"}), 400
     except Exception as exc:
         app.logger.exception("Unhandled query execution error")
         return jsonify({"error": "Internal compiler error"}), 500
 
 
 if __name__ == "__main__":
-    app.run(debug=os.getenv("FLASK_DEBUG", "0") == "1")
+    app.run(debug=False)
